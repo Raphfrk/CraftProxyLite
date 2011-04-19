@@ -17,7 +17,9 @@ public abstract class Packet extends ProtocolUnit {
 		
 		packetInfo = new ProtocolUnit[256][];
 				
-		packetInfo[1] = new ProtocolUnit[] {unitInt, unitString, unitString, unitLong, unitByte};
+		packetInfo[0x01] = new ProtocolUnit[] {unitInt, unitString, unitString, unitLong, unitByte};
+		
+		packetInfo[0xFF] = new ProtocolUnit[] {unitString};
 		
 	}
 	
@@ -37,7 +39,7 @@ public abstract class Packet extends ProtocolUnit {
 		if(fields != null) {
 			return true;
 		}
-		ProtocolUnit[] fieldsSource = packetInfo[packetId];
+		ProtocolUnit[] fieldsSource = packetInfo[packetId&0xFF];
 		int length = fieldsSource.length;
 		fields = new ProtocolUnit[length];
 		for(int cnt=0;cnt<length;cnt++) {
@@ -55,7 +57,7 @@ public abstract class Packet extends ProtocolUnit {
 	@Override
 	public Packet read(DataInputStream in, PassthroughConnection ptc) {
 		if(!setupFields()) {
-			System.out.println("Error creating field data storage for packet: " + packetId);
+			ptc.printError("Error creating field data storage for packet: " + packetId);
 		}
 		
 		int length = fields.length;
@@ -70,7 +72,7 @@ public abstract class Packet extends ProtocolUnit {
 	@Override
 	public Packet write(DataOutputStream out, PassthroughConnection ptc) {
 		if(!setupFields()) {
-			System.out.println("Error creating field data storage for packet: " + packetId);
+			ptc.printError("Error creating field data storage for packet: " + packetId);
 		}
 		
 		int length = fields.length;

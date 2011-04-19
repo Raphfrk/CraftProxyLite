@@ -126,7 +126,7 @@ public class UnitString extends ProtocolUnit {
 		}
 
 		if(length > 5000) {
-			System.out.println("String length exceeded limit (>5000), breaking connection");
+			ptc.printError("String length exceeded limit (>5000), breaking connection");
 			return null;
 		}
 

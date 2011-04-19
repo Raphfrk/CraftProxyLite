@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProxyListener extends Thread {
 	
 	private final int port;
-	private final String defaultServer;
 	private final int defaultPort;
 	private final String password;
 	
@@ -23,10 +22,9 @@ public class ProxyListener extends Thread {
 	
 	LinkedList<PassthroughConnection> connections = new LinkedList<PassthroughConnection>();
 	
-	ProxyListener(int port, String defaultServer, int defaultPort, String password) {
+	ProxyListener(int port, int defaultPort, String password) {
 		this.port = port;
 		this.defaultPort = defaultPort;
-		this.defaultServer = defaultServer;
 		this.password = password;
 	}
 	
@@ -114,7 +112,9 @@ public class ProxyListener extends Thread {
 					System.out.println("Exception when closing connection");
 				}
 			} else {
-				PassthroughConnection ptc = new PassthroughConnection(socket , defaultServer, defaultPort, password , port );
+				PassthroughConnection ptc = new PassthroughConnection(socket , defaultPort, password , port );
+				ptc.start();
+				addPassthroughConnection(ptc);
 				
 			}
 			

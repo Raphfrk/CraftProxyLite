@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 
 public class PacketFFKick extends Packet {
 
-	final static Byte defaultPacketId = 0x02;
+	final static Byte defaultPacketId = (byte)0xFF;
 	
 	PacketFFKick(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
@@ -20,7 +20,7 @@ public class PacketFFKick extends Packet {
 	}
 
 	void setMessage(String value) {
-		fields[0].setValue(value);
+		((UnitString)fields[0]).setValue(value);
 	}
 	
 	public static String kick(DataOutputStream out, PassthroughConnection ptc, String message) {
@@ -32,6 +32,10 @@ public class PacketFFKick extends Packet {
 		}
 		
 		PacketFFKick kick = new PacketFFKick((byte)(0xFF));
+		
+		if(UnitByte.writeByte(out, (byte)0xFF, ptc) == null) {
+			return null;
+		}
 		
 		kick.setupFields();
 		kick.setMessage(message);

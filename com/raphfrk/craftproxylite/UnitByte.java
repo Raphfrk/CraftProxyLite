@@ -14,8 +14,9 @@ public class UnitByte extends ProtocolUnit {
 		return temp.read(in, ptc);
 	}
 	
-	public static Byte writeByte(DataOutputStream out, PassthroughConnection ptc) {
+	public static Byte writeByte(DataOutputStream out, Byte value, PassthroughConnection ptc) {
 		UnitByte temp = new UnitByte();
+		temp.value = value;
 		return temp.write(out, ptc);
 	}
 

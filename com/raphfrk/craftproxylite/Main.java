@@ -21,14 +21,13 @@ public class Main {
 
 		System.out.println( "Starting Craftproxy-lite version " +  VersionNumbering.version );
 
-		String defaultServer;
 		int listenPort;
 		int defaultPort;
 		String password = "";
 
-		String usageString = "craftproxy <port to bind to> <default server> <default port> [hell] [quiet] [reconnectfile path_to_file] [verbose] [info] [auth] [clientversion num] [delay num] [local_alias alias] [debug] [banned banfile]";
+		String usageString = "craftproxy <port to listen to> <default port> [hell] [quiet] [reconnectfile path_to_file] [verbose] [info] [auth] [clientversion num] [delay num] [local_alias alias] [debug] [banned banfile]";
 
-		if( args.length < 3 ) {
+		if( args.length < 2 ) {
 			System.out.println( "Usage: " + usageString );
 			if(consoleInput) {
 				System.exit(0);
@@ -38,9 +37,8 @@ public class Main {
 		} else {
 			try {
 				listenPort = Integer.parseInt(args[0]);
-				defaultServer = args[1];
-				defaultPort = Integer.parseInt(args[2]);
-				for( int pos=3;pos<args.length;pos++) {
+				defaultPort = Integer.parseInt(args[1]);
+				for( int pos=2;pos<args.length;pos++) {
 
 					if( args[pos].equals("verbose"))        Globals.setVerbose(true);
 					else if( args[pos].equals("hell"))           Globals.setHell(true);
@@ -88,7 +86,7 @@ public class Main {
 
 		System.out.println( "Use \"end\" to stop the server");
 
-		ProxyListener server = new ProxyListener( listenPort, defaultServer, defaultPort, password );
+		ProxyListener server = new ProxyListener( listenPort, defaultPort, password );
 
 		server.start();
 

@@ -10,62 +10,58 @@ public class PassthroughConnection extends Thread {
 	boolean enabled = true;
 	
 	private final Socket socketToClient;
-	private final String defaultServer;
 	private final int defaultPort;
 	private final String password;
 	private final int listenPort;
 	protected final ClientInfo clientInfo;
+	
+	protected DataInputStream inputFromClient = null;
+	protected DataOutputStream outputToClient = null;
+	
+	protected DataInputStream inputFromServer = null;
+	protected DataOutputStream outputToServer = null;
+	
 	protected boolean kickMessageSent = false;
 
-	PassthroughConnection(Socket socketToClient, String defaultServer, int defaultPort, String password , int listenPort) {
+	PassthroughConnection(Socket socketToClient, int defaultPort, String password , int listenPort) {
 		this.socketToClient = socketToClient;
-		this.defaultServer = defaultServer;
 		this.defaultPort = defaultPort;
 		this.password = password;
 		this.listenPort = listenPort;
 		this.clientInfo = new ClientInfo();
+		this.clientInfo.setIP(socketToClient.getInetAddress().getHostAddress());
 	}
 	
 	public void run() {
-		DataInputStream inputFromClient = null;
-		DataOutputStream outputToClient = null;
 		
-		try {
-			inputFromClient = new DataInputStream( socketToClient.getInputStream() );
-		} catch (IOException e) {
-			System.out.println("Unable to open data stream to client");
-			if( inputFromClient != null ) {
-				try {
-					inputFromClient.close();
-				} catch (IOException e1) {
-					System.out.println("Unable to close data stream to client");
-				}
-			}
-			return;
-		}
-
-		try {
-			outputToClient = new DataOutputStream( socketToClient.getOutputStream() );
-		} catch (IOException e) {
-			System.out.println("Unable to open data stream from client");
-			if( outputToClient != null ) {
-				try {
-					outputToClient.close();
-				} catch (IOException e1) {
-					System.out.println("Unable to close data stream from client");
-				}
-			}
+		LocalSocket clientSocket = new LocalSocket(socketToClient, this);
+				
+		if(!clientSocket.success) {
+			printError("Unable to open data streams for client socket");
 			return;
 		}
 		
-		String kickMessage = Packet01Login.processLogin(inputFromClient, outputToClient, this);
+		int portnum = defaultPort;
 		
-		if(kickMessage != null) {
-			
+		Socket serverBasicSocket = LocalSocket.openSocket("localhost", portnum, this);
+		if(serverBasicSocket == null) {
+			printError("Unable to open connection to backend server");
+			PacketFFKick.kick(clientSocket.out, this, "Unable to connect to backend server");
+			LocalSocket.closeSocket(clientSocket.socket, this);
+			return;
 		}
+		LocalSocket serverSocket = new LocalSocket(serverBasicSocket, this);
 		
-		
+				
 	}
 	
+	void printError(String message) {
+		String username = clientInfo.getUsername();
+		if(username == null) {
+			System.out.println(clientInfo.getIP() + ": " + message);
+		} else {
+			System.out.println(clientInfo.getIP() + " (" + username + "): " + message);
+		}
+	}
 	
 }

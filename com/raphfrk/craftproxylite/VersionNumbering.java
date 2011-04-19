@@ -1,12 +1,11 @@
 package com.raphfrk.craftproxylite;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 public class VersionNumbering {
-	final static String version = "37";
+	final static String version = "1";
 
 	static String name = "default";
 	static final String slash = System.getProperty("file.separator");
