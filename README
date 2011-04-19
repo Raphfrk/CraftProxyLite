@@ -1,0 +1,37 @@
+Note: This doesn't actually work yet.
+
+To start use:
+
+java -jar CraftProxyLite.jar <port to bind to> <default port> [<password>] [verbose]
+
+If your server is on the same server as the proxy and uses port 25565, you could use
+
+java -jar CraftProxyLite.jar 20000 25565 somepassword
+
+Players would connect using yourhostname.com:20000
+
+Setup
+
+mkdir src
+cd src
+git clone git://github.com/Raphfrk/CraftProxy.git
+cd ..
+mkdir temp
+cd temp
+
+Create this file:
+
+javac.exe -cp "<path to Bukkit>/bukkit-0.0.1-SNAPSHOT.jar" ../src/com/raphfrk/craftproxy/*.java -d out
+
+cd out
+
+jar cvfm ../CraftProxy.jar ../../src/manifest.txt  *
+
+cd ..
+
+zip -r CraftProxy.jar . -i src/*.java
+
+pushd ../src
+zip -r ../temp/CraftProxy.jar . -i plugin.yml
+popd
+
