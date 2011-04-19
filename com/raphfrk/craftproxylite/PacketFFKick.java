@@ -28,7 +28,7 @@ public class PacketFFKick extends Packet {
 		if(ptc.kickMessageSent) {
 			return null;
 		} else {
-			ptc.kickMessageSent = true;
+			ptc.setKickMessageSent(true);
 		}
 		
 		PacketFFKick kick = new PacketFFKick((byte)(0xFF));
@@ -46,6 +46,16 @@ public class PacketFFKick extends Packet {
 			return message;
 		}
 		
+	}
+	
+	public static String kickAndClose(LocalSocket socket, PassthroughConnection ptc, String message) {
+		boolean fail = false;if(PacketFFKick.kick(socket.out, ptc, message) == null) {
+			fail=true;
+		}
+		if(!LocalSocket.closeSocket(socket.socket, ptc)) {
+			fail=true;
+		}
+		return fail?null:message;
 	}
 
 }

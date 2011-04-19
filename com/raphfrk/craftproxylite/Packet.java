@@ -57,7 +57,7 @@ public abstract class Packet extends ProtocolUnit {
 	@Override
 	public Packet read(DataInputStream in, PassthroughConnection ptc) {
 		if(!setupFields()) {
-			ptc.printError("Error creating field data storage for packet: " + packetId);
+			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
 		}
 		
 		int length = fields.length;
@@ -72,7 +72,7 @@ public abstract class Packet extends ProtocolUnit {
 	@Override
 	public Packet write(DataOutputStream out, PassthroughConnection ptc) {
 		if(!setupFields()) {
-			ptc.printError("Error creating field data storage for packet: " + packetId);
+			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
 		}
 		
 		int length = fields.length;

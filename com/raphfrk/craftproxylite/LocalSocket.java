@@ -21,10 +21,10 @@ public class LocalSocket {
 		try {
 			socket = new Socket(hostname, port);
 		} catch (UnknownHostException e) {
-			ptc.printError("Unknown hostname: " + hostname);
+			ptc.printLogMessage("Unknown hostname: " + hostname);
 			return null;
 		} catch (IOException e) {
-			ptc.printError("Unable to open socket to " + hostname + ":" + port);
+			ptc.printLogMessage("Unable to open socket to " + hostname + ":" + port);
 			return null;
 		}
 
@@ -50,13 +50,13 @@ public class LocalSocket {
 		try {
 			inLocal = new DataInputStream( socket.getInputStream() );
 		} catch (IOException e) {
-			ptc.printError("Unable to open data stream to client");
+			ptc.printLogMessage("Unable to open data stream to client");
 			if( inLocal != null ) {
 				try {
 					inLocal.close();
 					socket.close();
 				} catch (IOException e1) {
-					ptc.printError("Unable to close data stream to client");
+					ptc.printLogMessage("Unable to close data stream to client");
 				}
 			}
 			in = null;
@@ -68,13 +68,13 @@ public class LocalSocket {
 		try {
 			outLocal = new DataOutputStream( socket.getOutputStream() );
 		} catch (IOException e) {
-			ptc.printError("Unable to open data stream from client");
+			ptc.printLogMessage("Unable to open data stream from client");
 			if( outLocal != null ) {
 				try {
 					outLocal.close();
 					socket.close();
 				} catch (IOException e1) {
-					ptc.printError("Unable to close data stream from client");
+					ptc.printLogMessage("Unable to close data stream from client");
 				}
 			}
 			in = null;

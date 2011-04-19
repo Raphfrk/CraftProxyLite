@@ -96,7 +96,8 @@ public class ProxyListener extends Thread {
 			}
 			
 			String address = socket.getInetAddress().getHostAddress().toString();
-			System.out.println("Connection from " + address);
+			int port = socket.getPort();
+			System.out.println("Connection from " + address + "/" + port);
 			long currentTime = System.currentTimeMillis();
 			Long lastConnect = lastLogin.get(address);
 			boolean floodProtection = lastConnect != null && lastConnect + 5000 > currentTime;

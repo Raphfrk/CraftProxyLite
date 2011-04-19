@@ -29,7 +29,7 @@ public abstract class ProtocolUnit {
 
 	
 	boolean timedOut(PassthroughConnection ptc) {
-		if(ptc.enabled) {
+		if(ptc.testEnabled()) {
 			timeout++;
 			if(timeout>=20) {
 				return false;

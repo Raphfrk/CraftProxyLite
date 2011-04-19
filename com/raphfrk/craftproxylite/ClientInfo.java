@@ -4,6 +4,7 @@ public class ClientInfo {
 	
 	private String username;
 	private String ip;
+	private int port;
 	
 	public void setUsername(String username) {
 		this.username = username;
@@ -21,4 +22,11 @@ public class ClientInfo {
 		return ip;
 	}
 
+	public void setPort(int port) {
+		this.port = port;
+	}
+	
+	public int getPort() {
+		return port;
+	}
 }
