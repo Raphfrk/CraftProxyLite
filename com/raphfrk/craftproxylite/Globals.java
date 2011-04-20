@@ -82,7 +82,7 @@ public class Globals {
 		authenticate = newAuth;
 	}
 	
-	static private int defaultPlayerId = 123456;
+	static private int defaultPlayerId = 456789012;
 		
 	public synchronized static int getDefaultPlayerId() {
 		
@@ -148,5 +148,15 @@ public class Globals {
 	
 	public synchronized static void setThreshold( long threshold ) {
 		Globals.threshold = threshold;
+	}
+	
+	static private byte dimension = 0;
+	
+	public synchronized static byte getDimension() {
+		return dimension;
+	}
+	
+	public synchronized static void setDimension( byte dimension ) {
+		Globals.dimension = dimension;
 	}
 }

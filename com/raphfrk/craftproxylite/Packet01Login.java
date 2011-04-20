@@ -1,7 +1,14 @@
 package com.raphfrk.craftproxylite;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.security.SecureRandom;
 
 public class Packet01Login extends Packet {
 	
@@ -11,68 +18,156 @@ public class Packet01Login extends Packet {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
 	}
 	
-	Packet01Login(DataInputStream in, PassthroughConnection ptc) {
-		super(in, ptc);
+	Packet01Login(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+		super(out, ptc, thread, defaultPacketId);
 	}
-
-	static String processLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc) {
+	
+	Packet01Login(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+		super(in, ptc, thread);
+	}
+	
+	static String processLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean auth) {
 		
-		Packet02Handshake CtSHandshake = new Packet02Handshake(in, ptc);
+		Packet02Handshake CtSHandshake = new Packet02Handshake(in, ptc, thread);
 		
-		if(CtSHandshake.packetId == null || CtSHandshake.read(in, ptc) == null) {
-			return "Failed to read initial C->S handshake packet";
+		if(CtSHandshake.packetId == null || CtSHandshake.read(in, ptc, thread) == null) {
+			return "Client refused to send initial handshake";
 		}
 		
 		ptc.clientInfo.setUsername(CtSHandshake.getUsername());
+		ptc.printLogMessage("Attempting login");
 		
-		Packet01Login login = new Packet01Login(in, ptc);
-				
-		if(login == null || login.read(in, ptc) == null) {
-			return "Failed to read initial login packet";
+		Packet02Handshake StCHandshake = new Packet02Handshake(out, ptc, thread);
+		
+		String hashString;
+		if( auth ) {
+			hashString = getHashString();
+			if(!Globals.isQuiet()) {
+				ptc.printLogMessage("Hash used: " + hashString);
+			}
+		} else {
+			hashString = "-";
+		}
+		
+		StCHandshake.setUsername(hashString);
+		
+		if(StCHandshake.packetId == null || StCHandshake.write(out, ptc, thread) == null) {
+			return "Client rejected initial handshake";
+		}
+		
+		Packet01Login clientLogin = new Packet01Login(in, ptc, thread);
+		
+		if(clientLogin.packetId == null || clientLogin.read(in, ptc, thread) == null) {
+			return "Client sent bad login packet";
+		}
+		
+		if(auth) {
+			if(!authenticate(ptc.clientInfo.getUsername(), hashString,  ptc)) {
+				return "Proxy is unable to authenticate";
+			} 
+		}
+		
+		Packet01Login serverLogin = new Packet01Login(out, ptc, thread);
+		
+		serverLogin.setVersion(Globals.getDefaultPlayerId());
+		serverLogin.setDimension(Globals.getDimension());
+		serverLogin.setMapSeed(0);
+		serverLogin.setUsername("Minecraft");
+		
+		ptc.clientInfo.setPlayerEntityId(serverLogin.getVersion());
+		
+		if(serverLogin.packetId == null || serverLogin.write(out, ptc, thread) == null) {
+			return "Client rejected login packet";
 		}
 		
 		return null;
 		
 	}
 	
+	static SecureRandom hashGenerator = new SecureRandom();
+	
+	static String getHashString() {
+		long hashLong;
+		synchronized( hashGenerator ) {
+			hashLong = hashGenerator.nextLong();
+		}
+
+		return Long.toHexString(hashLong);
+	}
+	
+	static boolean authenticate( String username , String hashString, PassthroughConnection ptc )  {
+
+		try {
+			String authURLString = new String( "http://www.minecraft.net/game/checkserver.jsp?user=" + username + "&serverId=" + hashString);
+			if(!Globals.isQuiet()) {
+				ptc.printLogMessage("Authing with " + authURLString);
+			}
+			URL minecraft = new URL(authURLString);
+			URLConnection minecraftConnection = minecraft.openConnection();
+			BufferedReader in = new BufferedReader(new InputStreamReader(minecraftConnection.getInputStream()));
+
+			String reply = in.readLine();
+
+			if( Globals.isInfo() ) {
+				ptc.printLogMessage("Server Response: " + reply );
+			}
+
+			in.close();
+			
+			if( reply != null && reply.equals("YES")) {
+				
+				if(!Globals.isQuiet()) {
+					ptc.printLogMessage("Auth successful");
+				}
+				return true;
+			}
+		} catch (MalformedURLException mue) {
+			ptc.printLogMessage("Auth URL error");
+		} catch (IOException ioe) {
+			ptc.printLogMessage("Problem connecting to auth server");
+		}
+
+		return false;
+	}
+	
 	int getVersion() {
+		super.setupFields();
 		return (Integer)fields[0].getValue();
 	}
 	
 	void setVersion(int value) {
-		fields[0].setValue(value);
+		super.setupFields();
+		((UnitInteger)fields[0]).setValue(value);
 	}
 
 	String getUsername() {
+		super.setupFields();
 		return (String)fields[1].getValue();
 	}
 	
 	void setUsername(String value) {
-		fields[1].setValue(value);
-	}
-
-	String getPassword() {
-		return (String)fields[2].getValue();
-	}
-	
-	void setPassword(String value) {
-		fields[2].setValue(value);
+		super.setupFields();
+		((UnitString)fields[1]).setValue(value);
 	}
 	
 	long getMapSeed() {
-		return (Long)fields[3].getValue();
+		super.setupFields();
+		return (Long)fields[2].getValue();
 	}
 	
 	void setMapSeed(long value) {
-		fields[3].setValue(value);
+		super.setupFields();
+		((UnitLong)fields[2]).setValue(value);
 	}
 
 	byte getDimension() {
-		return (Byte)fields[4].getValue();
+		super.setupFields();
+		return (Byte)fields[3].getValue();
 	}
 	
 	void setDimension(byte value) {
-		fields[4].setValue(value);
+		super.setupFields();
+		((UnitByte)fields[3]).setValue(value);
 	}
 	
 }

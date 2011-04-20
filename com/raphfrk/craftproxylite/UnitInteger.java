@@ -10,13 +10,13 @@ public class UnitInteger extends ProtocolUnit {
 	private Integer value;
 
 	@Override
-	public Integer read(DataInputStream in, PassthroughConnection ptc) {
+	public Integer read(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
 
 		while(true) {
 			try {
 				value = in.readInt();
 			} catch ( SocketTimeoutException toe ) {
-				if(timedOut(ptc)) {
+				if(timedOut(thread)) {
 					continue;
 				}
 				return null;
@@ -32,13 +32,13 @@ public class UnitInteger extends ProtocolUnit {
 	}
 	
 	@Override
-	public Integer write(DataOutputStream out, PassthroughConnection ptc) {
+	public Integer write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 
 		while(true) {
 			try {
 				out.writeInt(value);
 			} catch ( SocketTimeoutException toe ) {
-				if(timedOut(ptc)) {
+				if(timedOut(thread)) {
 					continue;
 				}
 				return null;
@@ -54,10 +54,10 @@ public class UnitInteger extends ProtocolUnit {
 	}
 	
 	@Override
-	public Integer pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc) {
-		read(in, ptc);
+	public Integer pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+		read(in, ptc, thread);
 		if(value != null) {
-			return write(out, ptc);
+			return write(out, ptc, thread);
 		} else {
 			return null;
 		}

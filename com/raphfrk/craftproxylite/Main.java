@@ -52,6 +52,7 @@ public class Main {
 					else if( args[pos].equals("reconnectfile")){ ReconnectCache.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("banned"))       { BanList.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("limiter"))       { Globals.setLimiter(Integer.parseInt(args[pos+1])); pos++;}
+					else if( args[pos].equals("byte"))       { Globals.setDimension(Byte.parseByte(args[pos+1])); pos++;}
 					else if( args[pos].equals("fairness"))      { Globals.setFairness(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("delay"))		   { Globals.setDelay(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("window"))		   { Globals.setWindow(Long.parseLong(args[pos+1])); pos++;}
@@ -97,19 +98,15 @@ public class Main {
 				while( !in.readLine().equals("end") ) {
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 
 			try {
 				in.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 			
 			ReconnectCache.save();
-			server.kill();
+			server.interrupt();
 		} else {
 			System.out.println("Server console disabled");
 			while(true) {
@@ -121,9 +118,16 @@ public class Main {
 					}
 				} catch (InterruptedException ie) {
 					ReconnectCache.save();
-					server.kill();
+					server.interrupt();
 				}
 			}
+		}
+		
+		System.out.println("Waiting for server to close");
+		try {
+			server.join();
+		} catch (InterruptedException e) {
+			System.out.println("Server interrupted while closing");
 		}
 
 	}

@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ProxyListener extends Thread {
+public class ProxyListener extends KillableThread {
 	
 	private final int port;
 	private final int defaultPort;
@@ -61,7 +61,7 @@ public class ProxyListener extends Thread {
 		
 		System.out.println("Server listening on port: " + port);
 		
-		while(isEnabled()) {
+		while(!killed()) {
 			
 			Socket socket = null;
 			try {
@@ -106,7 +106,7 @@ public class ProxyListener extends Thread {
 				System.out.println("Disconnecting due to connect flood protection");
 				try {
 					DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-					//Protocol.kick(outputStream, "Only one connection is allowed per IP every 5 seconds");
+					PacketFFKick.kick(outputStream, null, null, "Only one connection is allowed per IP every 5 seconds");
 					outputStream.flush();
 					socket.close();
 				} catch (IOException e) {
@@ -122,34 +122,8 @@ public class ProxyListener extends Thread {
 			
 		}
 		
+		interruptConnections();		
 		
-	}
-	
-	private boolean isEnabled() {
-		synchronized(enableSync) {
-			return enabled;
-		}
-	}
-	
-	public void kill() {
-		synchronized(enableSync) {
-			enabled = false;
-		}
-		boolean selfCall = Thread.currentThread().equals(this);
-		System.out.println("Sent server kill signal");
-		try {
-			if(!selfCall) {
-				this.join();
-			}
-		} catch (InterruptedException e) {
-		}
-		if((!selfCall) && this.isAlive()) {
-			System.out.println("Server shutdown failed to complete correctly");
-		} else if(selfCall) {
-			System.out.println("Server exit command sent from server thread");
-		} else {
-			System.out.println("Server shutdown complete");
-		}
 	}
 	
 	void addPassthroughConnection(PassthroughConnection ptc) {
@@ -164,6 +138,19 @@ public class ProxyListener extends Thread {
 		connections.add(ptc);
 	}
 	
-	
+	void interruptConnections() {
+		Iterator<PassthroughConnection> itr = connections.iterator();
+		
+		while(itr.hasNext()) {
+			PassthroughConnection ptc = itr.next();
+			ptc.interrupt();
+			try {
+				ptc.join();
+			} catch (InterruptedException e) {
+				ptc.printLogMessage("Unable to break connection");
+				kill();
+			}
+		}
+	}
 
 }

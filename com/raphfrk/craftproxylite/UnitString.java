@@ -10,7 +10,7 @@ public class UnitString extends ProtocolUnit {
 	private String value;
 
 	@Override
-	public String read(DataInputStream in, PassthroughConnection ptc) {
+	public String read(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
 
 		Short length;
 
@@ -18,7 +18,7 @@ public class UnitString extends ProtocolUnit {
 			try {
 				length = in.readShort();
 			} catch ( SocketTimeoutException toe ) {
-				if(timedOut(ptc)) {
+				if(timedOut(thread)) {
 					continue;
 				}
 				return null;
@@ -31,7 +31,7 @@ public class UnitString extends ProtocolUnit {
 		}
 
 		if(length > 5000) {
-			System.out.println("String length exceeded limit (>5000), breaking connection");
+			ptc.printLogMessage("String length exceeded limit (>5000), breaking connection");
 			return null;
 		}
 
@@ -43,7 +43,7 @@ public class UnitString extends ProtocolUnit {
 				try {
 					c = in.readChar();
 				} catch ( SocketTimeoutException toe ) {
-					if(timedOut(ptc)) {
+					if(timedOut(thread)) {
 						continue;
 					}
 					return null;
@@ -63,13 +63,13 @@ public class UnitString extends ProtocolUnit {
 	}
 
 	@Override
-	public String write(DataOutputStream out, PassthroughConnection ptc) {
+	public String write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 
 		while(true) {
 			try {
 				out.writeShort(value.length());
 			} catch ( SocketTimeoutException toe ) {
-				if(timedOut(ptc)) {
+				if(timedOut(thread)) {
 					continue;
 				}
 				return null;
@@ -80,32 +80,27 @@ public class UnitString extends ProtocolUnit {
 			super.timeout = 0;
 			break;
 		}
-		
-		int length = value.length();
-		
-		for(int cnt=0;cnt<length;cnt++) {
-			while(true) {
-				try {
-					out.writeShort(value.charAt(cnt));
-				} catch ( SocketTimeoutException toe ) {
-					if(timedOut(ptc)) {
-						continue;
-					}
-					return null;
-				} catch (IOException e) {
-					return null;
+
+		while(true) {
+			try {
+				out.writeChars(value);
+			} catch ( SocketTimeoutException toe ) {
+				if(timedOut(thread)) {
+					continue;
 				}
-
-				super.timeout = 0;
-				break;
+				return null;
+			} catch (IOException e) {
+				return null;
 			}
-		}
 
+			super.timeout = 0;
+			break;
+		}
 		return value;
 	}
 
 	@Override
-	public String pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc) {
+	public String pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 		Short length;
 
 		while(true) {
@@ -113,7 +108,7 @@ public class UnitString extends ProtocolUnit {
 				length = in.readShort();
 				out.writeShort(length);
 			} catch ( SocketTimeoutException toe ) {
-				if(timedOut(ptc)) {
+				if(timedOut(thread)) {
 					continue;
 				}
 				return null;
@@ -136,7 +131,7 @@ public class UnitString extends ProtocolUnit {
 				try {
 					c = in.readChar();
 				} catch ( SocketTimeoutException toe ) {
-					if(timedOut(ptc)) {
+					if(timedOut(thread)) {
 						continue;
 					}
 					return null;
@@ -151,7 +146,7 @@ public class UnitString extends ProtocolUnit {
 				try {
 					out.writeChar(c);
 				} catch ( SocketTimeoutException toe ) {
-					if(timedOut(ptc)) {
+					if(timedOut(thread)) {
 						continue;
 					}
 					return null;
@@ -167,12 +162,12 @@ public class UnitString extends ProtocolUnit {
 		value = "";
 		return value;
 	}
-	
+
 	@Override
 	public String getValue() {
 		return value;
 	}
-	
+
 	public void setValue(String value) {
 		this.value = value;
 	}

@@ -10,13 +10,13 @@ public class UnitCharacter extends ProtocolUnit {
 	private Character value;
 
 	@Override
-	public Character read(DataInputStream in, PassthroughConnection ptc) {
+	public Character read(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
 
 		while(true) {
 			try {
 				value = in.readChar();
 			} catch ( SocketTimeoutException toe ) {
-				if(timedOut(ptc)) {
+				if(timedOut(thread)) {
 					continue;
 				}
 				return null;
@@ -32,13 +32,13 @@ public class UnitCharacter extends ProtocolUnit {
 	}
 	
 	@Override
-	public Character write(DataOutputStream out, PassthroughConnection ptc) {
+	public Character write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 
 		while(true) {
 			try {
 				out.writeChar(value);
 			} catch ( SocketTimeoutException toe ) {
-				if(timedOut(ptc)) {
+				if(timedOut(thread)) {
 					continue;
 				}
 				return null;
@@ -54,10 +54,10 @@ public class UnitCharacter extends ProtocolUnit {
 	}
 	
 	@Override
-	public Character pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc) {
-		read(in, ptc);
+	public Character pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+		read(in, ptc, thread);
 		if(value != null) {
-			return write(out, ptc);
+			return write(out, ptc, thread);
 		} else {
 			return null;
 		}

@@ -1,6 +1,7 @@
 package com.raphfrk.craftproxylite;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 
 public class Packet02Handshake extends Packet {
 
@@ -10,16 +11,23 @@ public class Packet02Handshake extends Packet {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
 	}
 	
-	Packet02Handshake(DataInputStream in, PassthroughConnection ptc) {
-		super(in, ptc);
+	Packet02Handshake(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+		super(in, ptc, thread);
+	}
+	
+	Packet02Handshake(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+		super(out, ptc, thread, defaultPacketId);
 	}
 	
 	String getUsername() {
+		super.setupFields();
 		return (String)fields[0].getValue();
 	}
 
 	void setUsername(String value) {
-		fields[0].setValue(value);
+		super.setupFields();
+		((UnitString)fields[0]).setValue(value);
+		
 	}
 
 }

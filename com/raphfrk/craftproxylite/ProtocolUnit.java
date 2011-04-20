@@ -7,20 +7,20 @@ public abstract class ProtocolUnit {
 	
 	int timeout = 0;
 	
-	public Object read(DataInputStream in, PassthroughConnection connection) {
+	public Object read(DataInputStream in, PassthroughConnection connection, KillableThread thread) {
 		return null;
 	}
 	
-	public Object write(DataOutputStream out, PassthroughConnection ptc) {
+	public Object write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 		return null;
 	}
 	
-	public Object pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc) {
+	public Object pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 		return null;
 	}
 	
 	public Object getValue() {
-		return null;
+		throw new RuntimeException("attempted to set value to unextended ProtocolUnit");
 	}
 	
 	public void setValue(Object value) {
@@ -28,8 +28,8 @@ public abstract class ProtocolUnit {
 	}
 
 	
-	boolean timedOut(PassthroughConnection ptc) {
-		if(ptc.testEnabled()) {
+	boolean timedOut(KillableThread thread) {
+		if(thread == null || (!thread.killed)) {
 			timeout++;
 			if(timeout>=20) {
 				return false;

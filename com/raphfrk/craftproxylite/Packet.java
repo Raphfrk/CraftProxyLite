@@ -17,7 +17,8 @@ public abstract class Packet extends ProtocolUnit {
 		
 		packetInfo = new ProtocolUnit[256][];
 				
-		packetInfo[0x01] = new ProtocolUnit[] {unitInt, unitString, unitString, unitLong, unitByte};
+		packetInfo[0x01] = new ProtocolUnit[] {unitInt, unitString, unitLong, unitByte};
+		packetInfo[0x02] = new ProtocolUnit[] {unitString};
 		
 		packetInfo[0xFF] = new ProtocolUnit[] {unitString};
 		
@@ -25,8 +26,12 @@ public abstract class Packet extends ProtocolUnit {
 	
 	final Byte packetId;
 	
-	Packet(DataInputStream in, PassthroughConnection ptc) {
-		this(UnitByte.getByte(in, ptc));
+	Packet(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+		this(UnitByte.getByte(in, ptc, null));
+	}
+	
+	Packet(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, Byte packetId) {
+		this(UnitByte.writeByte(out, packetId, ptc, null));
 	}
 	
 	Packet(Byte packetId) {
@@ -55,14 +60,14 @@ public abstract class Packet extends ProtocolUnit {
 	}
 
 	@Override
-	public Packet read(DataInputStream in, PassthroughConnection ptc) {
+	public Packet read(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
 		}
 		
 		int length = fields.length;
 		for(int cnt=0;cnt<length;cnt++) {
-			if(fields[cnt].read(in, ptc)==null) {
+			if(fields[cnt].read(in, ptc, null)==null) {
 				return null;
 			}
 		}
@@ -70,14 +75,14 @@ public abstract class Packet extends ProtocolUnit {
 	}
 	
 	@Override
-	public Packet write(DataOutputStream out, PassthroughConnection ptc) {
+	public Packet write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
 		}
 		
 		int length = fields.length;
 		for(int cnt=0;cnt<length;cnt++) {
-			if(fields[cnt].write(out, ptc)==null) {
+			if(fields[cnt].write(out, ptc, null)==null) {
 				return null;
 			}
 		}
@@ -85,10 +90,10 @@ public abstract class Packet extends ProtocolUnit {
 	}
 	
 	@Override
-	public Packet pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc) {
+	public Packet pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 		int length = fields.length;
 		for(int cnt=0;cnt<length;cnt++) {
-			if(fields[cnt].pass(in, out, ptc)==null) {
+			if(fields[cnt].pass(in, out, ptc, null)==null) {
 				return null;
 			}
 		}

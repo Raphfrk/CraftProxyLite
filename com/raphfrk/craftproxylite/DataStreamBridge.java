@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 
-public class DataStreamBridge extends Thread {
+public class DataStreamBridge extends KillableThread {
 	
 	final DataInputStream in;
 	final DataOutputStream out;
@@ -25,12 +25,12 @@ public class DataStreamBridge extends Thread {
 		
 		int timeout = 0;
 		
-		while(!eof && ptc.testEnabled()) {
+		while(!eof && !super.killed()) {
 			int read=0;
 			try {
 				read = in.read(buffer);
 			} catch (SocketTimeoutException ste) {
-				if(ptc.testEnabled()) {
+				if(!super.killed()) {
 					timeout++;
 					if(timeout > 20) {
 						ptc.printLogMessage("Connection timed out");
@@ -55,6 +55,8 @@ public class DataStreamBridge extends Thread {
 				}
 			}
 		}
+		
+		ptc.interrupt();
 		
 	}
 	

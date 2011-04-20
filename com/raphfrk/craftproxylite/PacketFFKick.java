@@ -11,8 +11,8 @@ public class PacketFFKick extends Packet {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
 	}
 	
-	PacketFFKick(DataInputStream in, PassthroughConnection ptc) {
-		super(in, ptc);
+	PacketFFKick(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+		super(in, ptc, thread);
 	}
 	
 	String getMessage() {
@@ -23,24 +23,22 @@ public class PacketFFKick extends Packet {
 		((UnitString)fields[0]).setValue(value);
 	}
 	
-	public static String kick(DataOutputStream out, PassthroughConnection ptc, String message) {
+	public static String kick(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, String message) {
 		
-		if(ptc.kickMessageSent) {
+		if(ptc != null && (!ptc.sendingKickMessage())) {
 			return null;
-		} else {
-			ptc.setKickMessageSent(true);
 		}
 		
 		PacketFFKick kick = new PacketFFKick((byte)(0xFF));
 		
-		if(UnitByte.writeByte(out, (byte)0xFF, ptc) == null) {
+		if(UnitByte.writeByte(out, (byte)0xFF, ptc, thread) == null) {
 			return null;
 		}
 		
 		kick.setupFields();
 		kick.setMessage(message);
 		
-		if(kick.write(out, ptc) == null) {
+		if(kick.write(out, ptc, thread) == null) {
 			return null;
 		} else {
 			return message;
@@ -48,8 +46,9 @@ public class PacketFFKick extends Packet {
 		
 	}
 	
-	public static String kickAndClose(LocalSocket socket, PassthroughConnection ptc, String message) {
-		boolean fail = false;if(PacketFFKick.kick(socket.out, ptc, message) == null) {
+	public static String kickAndClose(LocalSocket socket, PassthroughConnection ptc, KillableThread thread, String message) {
+		boolean fail = false;
+		if(PacketFFKick.kick(socket.out, ptc, thread, message) == null) {
 			fail=true;
 		}
 		if(!LocalSocket.closeSocket(socket.socket, ptc)) {

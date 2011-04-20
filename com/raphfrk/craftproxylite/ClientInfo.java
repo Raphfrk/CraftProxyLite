@@ -2,6 +2,7 @@ package com.raphfrk.craftproxylite;
 
 public class ClientInfo {
 	
+	private int playerEntityId;
 	private String username;
 	private String ip;
 	private int port;
@@ -29,4 +30,14 @@ public class ClientInfo {
 	public int getPort() {
 		return port;
 	}
+	
+	public void setPlayerEntityId(int playerEntityId) {
+		this.playerEntityId = playerEntityId;
+	}
+	
+	public int getPlayerEntityId() {
+		return playerEntityId;
+	}
 }
+
+
