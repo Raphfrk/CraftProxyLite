@@ -30,7 +30,7 @@ public abstract class ProtocolUnit implements Cloneable {
 
 	
 	boolean timedOut(KillableThread thread) {
-		if(thread == null || (!thread.killed)) {
+		if(thread == null || (!thread.killed())) {
 			timeout++;
 			if(timeout>=20) {
 				return false;

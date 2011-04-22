@@ -107,16 +107,22 @@ public class PassthroughConnection extends KillableThread {
 							clientLoginPacket.setVersion(serverLoginPacket.getVersion());
 						}
 						if(Globals.getDimension() == null) {
-							printLogMessage("Using dimension from server packet: " + serverLoginPacket.getDimension());
+							if(Globals.isVerbose()) {
+								printLogMessage("Using dimension from server packet: " + serverLoginPacket.getDimension());
+							}
 							clientLoginPacket.setDimension(serverLoginPacket.getDimension());
 						} else {
-							printLogMessage("Using default dimension: " + Globals.getDimension());
+							if(Globals.isVerbose()) {
+								printLogMessage("Using default dimension: " + Globals.getDimension());
+							}
 							clientLoginPacket.setDimension(Globals.getDimension());
 						}
 						clientLoginPacket.setMapSeed(serverLoginPacket.getMapSeed());
 						clientLoginPacket.setUsername(serverLoginPacket.getUsername());
 						if(clientLoginPacket.packetId == null || clientLoginPacket.write(clientSocket.out, this, this, true) == null) {
-							printLogMessage("Failed to write login packet to client");
+							if(Globals.isVerbose()) {
+								printLogMessage("Failed to write login packet to client");
+							}
 							connected = false;
 						}
 					}

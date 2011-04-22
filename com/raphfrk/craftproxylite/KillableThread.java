@@ -2,7 +2,7 @@ package com.raphfrk.craftproxylite;
 
 public class KillableThread extends Thread {
 	
-	boolean killed = false;
+	private boolean killed = false;
 
 	public boolean killed() {
 		if(Thread.interrupted()) {

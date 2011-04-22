@@ -177,7 +177,7 @@ public class Packet extends ProtocolUnit {
 			if(Globals.isVerbose()) {
 				ptc.printLogMessage((serverToClient? "S->C" : "C->S") + "       " + fields[cnt].getClass().toString());
 			}
-			Object val = fields[cnt].pass(in, out, ptc, null, serverToClient, buffer, linkState);
+			Object val = fields[cnt].pass(in, out, ptc, thread, serverToClient, buffer, linkState);
 			if(Globals.isVerbose()) {
 				ptc.printLogMessage(cnt + " " + val);
 			}

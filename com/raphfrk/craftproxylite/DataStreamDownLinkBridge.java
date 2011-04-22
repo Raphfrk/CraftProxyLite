@@ -28,13 +28,17 @@ public class DataStreamDownLinkBridge extends KillableThread {
 			Byte packetId = UnitByte.getByte(in, ptc, this);
 			
 			if(packetId == null) {
-				ptc.printLogMessage("Unable to read packet id");
+				if(!Globals.isQuiet()) {
+					ptc.printLogMessage("Unable to read packet id");
+				}
 				eof = true;
 				continue;
 			}
 
 			if(UnitByte.writeByte(out, packetId, ptc, this) == null) {
-				ptc.printLogMessage("Unable to write packet id");
+				if(!Globals.isQuiet()) {
+					ptc.printLogMessage("Unable to write packet id");
+				}
 				eof = true;
 				continue;
 			}
@@ -46,13 +50,14 @@ public class DataStreamDownLinkBridge extends KillableThread {
 			}
 			
 			if(currentPacket.pass(in, out, ptc, this, true, buffer, linkState) == null) {
-				ptc.printLogMessage("Unable to transfer packet");
+				if(!Globals.isQuiet()) {
+					ptc.printLogMessage("Unable to transfer packet");
+				}
 				eof = true;
 				continue;
 			}
 			
 		}
-		
 		ptc.interrupt();
 		
 	}

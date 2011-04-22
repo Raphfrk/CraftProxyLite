@@ -35,7 +35,7 @@ public class Packet01Login extends Packet {
 		}
 		
 		ptc.clientInfo.setUsername(CtSHandshake.getUsername());
-		ptc.printLogMessage("Attempting login");
+		ptc.printLogMessage("Player attempting to log in to proxy");
 		
 		Packet02Handshake StCHandshake = new Packet02Handshake(out, ptc, thread);
 		
@@ -77,7 +77,7 @@ public class Packet01Login extends Packet {
 	
 	static String serverLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 
-		ptc.printLogMessage("Attempting server login");
+		ptc.printLogMessage("Attempting to log into backend server");
 		
 		Packet02Handshake CtSHandshake = new Packet02Handshake(out, ptc, thread);
 		
