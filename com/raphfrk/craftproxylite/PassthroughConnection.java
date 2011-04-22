@@ -2,8 +2,9 @@ package com.raphfrk.craftproxylite;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class PassthroughConnection extends KillableThread {
 
@@ -12,6 +13,8 @@ public class PassthroughConnection extends KillableThread {
 	private final String password;
 	private final int listenPort;
 	protected final ClientInfo clientInfo;
+	
+	DateFormat shortTime = DateFormat.getTimeInstance(DateFormat.SHORT);
 
 	private boolean forward = false;
 
@@ -28,6 +31,9 @@ public class PassthroughConnection extends KillableThread {
 	protected DataOutputStream outputToServer = null;
 
 	protected boolean kickMessageSent = false;
+	
+	private Object redirectSync = new Object();
+	private String redirect = null;
 
 	PassthroughConnection(Socket socketToClient, int defaultPort, String password , int listenPort) {
 		this.socketToClient = socketToClient;
@@ -65,6 +71,27 @@ public class PassthroughConnection extends KillableThread {
 		boolean firstConnection = true;
 
 		while(connected && !killed()) {
+			
+			String redirectLocal = getRedirect();
+			setRedirect(null);
+			
+			if(redirectLocal != null) {
+				String[] split = redirectLocal.split(":");
+				if(split.length != 2) {
+					printLogMessage("Error with redirect string");
+					connected = false;
+				} else {
+					hostname = split[0];
+					try {
+						portnum = Integer.parseInt(split[1]);
+					} catch (NumberFormatException nfe) {
+						printLogMessage("Error with processing port number");
+						connected = false;
+					}
+				}
+			}
+			
+			printLogMessage("Connecting to: " + hostname + ":" + portnum);
 
 			Socket serverBasicSocket = LocalSocket.openSocket(hostname, portnum, this);
 			if(serverBasicSocket == null) {
@@ -135,7 +162,6 @@ public class PassthroughConnection extends KillableThread {
 						} else {
 							serverToClient = new DataStreamDownLinkBridge(serverSocket.in, clientSocket.out, this);
 							clientToServer = new DataStreamUpLinkBridge(clientSocket.in, serverSocket.out, this);
-							connected = false;
 						}
 
 						boolean localEnabled;
@@ -160,6 +186,7 @@ public class PassthroughConnection extends KillableThread {
 									serverToClient.interrupt();
 								}
 							}
+							connected = getRedirect() != null;
 						}
 					}
 				}
@@ -167,6 +194,12 @@ public class PassthroughConnection extends KillableThread {
 
 			printLogMessage("Closing connection to server");
 			LocalSocket.closeSocket(serverSocket.socket, this);
+			if(connected) {
+				if(Globals.isVerbose()) {
+					printLogMessage("Reviving thread");
+				}
+				revive();
+			}
 		}
 
 		if(!getKickMessageSent()) {
@@ -181,9 +214,9 @@ public class PassthroughConnection extends KillableThread {
 	synchronized void printLogMessage(String message) {
 		String username = clientInfo.getUsername();
 		if(username == null) {
-			System.out.println(clientInfo.getIP() + "/" + clientInfo.getPort() + ": " + message);
+			System.out.println("[" + shortTime.format(new Date()) + "] " + clientInfo.getIP() + "/" + clientInfo.getPort() + ": " + message);
 		} else {
-			System.out.println(clientInfo.getIP() + "/" + clientInfo.getPort() + " (" + username + "): " + message);
+			System.out.println("[" + shortTime.format(new Date()) + "] " + clientInfo.getIP() + "/" + clientInfo.getPort() + " (" + username + "): " + message);
 		}
 	}
 
@@ -200,6 +233,15 @@ public class PassthroughConnection extends KillableThread {
 		return kickMessageSent;
 	}
 
+	@Override
+	public void revive() {
+		super.revive();
+		synchronized(enabledSync) {
+			enabled = true;
+		}
+		
+	}
+	
 	public void interrupt() {
 		synchronized(enabledSync) {
 			enabled = false;
@@ -212,6 +254,18 @@ public class PassthroughConnection extends KillableThread {
 		}
 	}
 
-
+	public void setRedirect(String redirect) {
+		synchronized(redirectSync) {
+			this.redirect = redirect;
+		}
+	}
+	
+	public String getRedirect() {
+		synchronized(redirectSync) {
+			return(redirect);
+		}
+	}
+	
+	
 
 }

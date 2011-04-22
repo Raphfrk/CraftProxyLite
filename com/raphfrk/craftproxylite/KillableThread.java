@@ -16,4 +16,9 @@ public class KillableThread extends Thread {
 		killed = true;
 	}
 	
+	protected void revive() {
+		Thread.interrupted();
+		killed = false;
+	}
+	
 }

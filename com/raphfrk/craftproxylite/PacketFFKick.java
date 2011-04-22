@@ -56,5 +56,37 @@ public class PacketFFKick extends Packet {
 		}
 		return fail?null:message;
 	}
+	
+	public static String redirectDetected(String reason, PassthroughConnection ptc) {
+
+		String hostName = null;
+		int portNum = -1;
+		
+		if(ptc != null && (!Globals.isQuiet())) {
+			ptc.printLogMessage( "Kicked with: " + reason ); 
+		}
+
+		if( reason.indexOf("[Serverport]") == 0 ) {
+			String[] split = reason.split( ":" );
+			if( split.length == 3 ) {
+				hostName = split[1].trim();
+				try { 
+					portNum = Integer.parseInt( split[2].trim() );
+				} catch (Exception e) { portNum = -1; };
+			} else  if( split.length == 2 ) {
+				hostName = split[1].trim();
+				try {
+					portNum = 25565;
+				} catch (Exception e) { portNum = -1; };
+			}
+		}
+
+		if( portNum != -1 ) {
+			return hostName + ":" + portNum;
+		} else {
+			return null;
+
+		}
+	}
 
 }
