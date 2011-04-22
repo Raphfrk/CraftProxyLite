@@ -4,13 +4,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.LinkedHashSet;
 
 public class UnitCharacter extends ProtocolUnit {
 
 	private Character value;
 
 	@Override
-	public Character read(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+	public Character read(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, DownlinkState linkState) {
 
 		while(true) {
 			try {
@@ -32,7 +33,7 @@ public class UnitCharacter extends ProtocolUnit {
 	}
 	
 	@Override
-	public Character write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+	public Character write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
 		while(true) {
 			try {
@@ -54,10 +55,10 @@ public class UnitCharacter extends ProtocolUnit {
 	}
 	
 	@Override
-	public Character pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
-		read(in, ptc, thread);
+	public Character pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, byte[] buffer, DownlinkState linkState) {
+		read(in, ptc, thread, serverToClient, linkState);
 		if(value != null) {
-			return write(out, ptc, thread);
+			return write(out, ptc, thread, serverToClient);
 		} else {
 			return null;
 		}

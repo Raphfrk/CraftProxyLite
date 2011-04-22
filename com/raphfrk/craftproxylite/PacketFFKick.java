@@ -38,7 +38,7 @@ public class PacketFFKick extends Packet {
 		kick.setupFields();
 		kick.setMessage(message);
 		
-		if(kick.write(out, ptc, thread) == null) {
+		if(kick.write(out, ptc, thread, true) == null) {
 			return null;
 		} else {
 			return message;

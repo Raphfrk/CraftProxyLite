@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.LinkedHashSet;
 
-public class UnitInteger extends ProtocolUnit {
+public class UnitEntityId extends ProtocolUnit {
 
 	private Integer value;
 
@@ -16,6 +16,23 @@ public class UnitInteger extends ProtocolUnit {
 		while(true) {
 			try {
 				value = in.readInt();
+				if(serverToClient) {
+					if(value == ptc.clientInfo.getPlayerEntityId()) {
+						value = Globals.getDefaultPlayerId();
+					} else if (value == Globals.getDefaultPlayerId()) {
+						ptc.printLogMessage("Player entity id collision (server to client) - breaking connection");
+						return null;
+					} else {
+						linkState.entityIds.add(value);
+					}
+				} else {
+					if(value == Globals.getDefaultPlayerId()) {
+						value = ptc.clientInfo.getPlayerEntityId();
+					} else if (value == ptc.clientInfo.getPlayerEntityId()) {
+						ptc.printLogMessage("Player entity id collision (client to server)- breaking connection");
+						return null;
+					}
+				}
 			} catch ( SocketTimeoutException toe ) {
 				if(timedOut(thread)) {
 					continue;

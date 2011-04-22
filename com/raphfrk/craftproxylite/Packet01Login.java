@@ -30,7 +30,7 @@ public class Packet01Login extends Packet {
 		
 		Packet02Handshake CtSHandshake = new Packet02Handshake(in, ptc, thread);
 		
-		if(CtSHandshake.packetId == null || CtSHandshake.read(in, ptc, thread) == null) {
+		if(CtSHandshake.packetId == null || CtSHandshake.read(in, ptc, thread, true, null) == null) {
 			return "Client refused to send initial handshake";
 		}
 		
@@ -51,14 +51,18 @@ public class Packet01Login extends Packet {
 		
 		StCHandshake.setUsername(hashString);
 		
-		if(StCHandshake.packetId == null || StCHandshake.write(out, ptc, thread) == null) {
+		if(StCHandshake.packetId == null || StCHandshake.write(out, ptc, thread, false) == null) {
 			return "Client rejected initial handshake";
 		}
 		
 		Packet01Login clientLogin = new Packet01Login(in, ptc, thread);
 		
-		if(clientLogin.packetId == null || clientLogin.read(in, ptc, thread) == null) {
+		if(clientLogin.packetId == null || clientLogin.read(in, ptc, thread, true, null) == null) {
 			return "Client sent bad login packet";
+		}
+		
+		if(clientLogin.getVersion() != Globals.getClientVersion()) {
+			return "Client attempted to login with incorrect version";
 		}
 		
 		if(auth) {
@@ -67,22 +71,42 @@ public class Packet01Login extends Packet {
 			} 
 		}
 		
-		Packet01Login serverLogin = new Packet01Login(out, ptc, thread);
-		
-		serverLogin.setVersion(Globals.getDefaultPlayerId());
-		serverLogin.setDimension(Globals.getDimension());
-		serverLogin.setMapSeed(0);
-		serverLogin.setUsername("Minecraft");
-		
-		ptc.clientInfo.setPlayerEntityId(serverLogin.getVersion());
-		
-		if(serverLogin.packetId == null || serverLogin.write(out, ptc, thread) == null) {
-			return "Client rejected login packet";
-		}
-		
 		return null;
 		
 	}
+	
+	static String serverLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+
+		ptc.printLogMessage("Attempting server login");
+		
+		Packet02Handshake CtSHandshake = new Packet02Handshake(out, ptc, thread);
+		
+		CtSHandshake.setUsername(ptc.clientInfo.getUsername());
+		
+		if(CtSHandshake.packetId == null || CtSHandshake.write(out, ptc, thread, false) == null) {
+			return "Server rejected intial handshake packet";
+		}
+		
+		Packet02Handshake StCHandshake = new Packet02Handshake(in, ptc, thread);
+		
+		if(StCHandshake.packetId == null || StCHandshake.read(in, ptc, thread, true, null) == null) {
+			return "Server sent bad handshake packet";
+		}
+		
+		Packet01Login clientLogin = new Packet01Login(out, ptc, thread);
+		
+		clientLogin.setVersion(Globals.getClientVersion());
+		clientLogin.setUsername(ptc.clientInfo.getUsername());
+		clientLogin.setDimension((byte)0);
+		clientLogin.setMapSeed(0);
+		
+		if(clientLogin.packetId == null || clientLogin.write(out, ptc, thread, false) == null) {
+			return "Server rejected client login packet";
+		}
+		
+		return null;
+	}
+
 	
 	static SecureRandom hashGenerator = new SecureRandom();
 	

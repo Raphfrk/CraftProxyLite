@@ -4,13 +4,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.LinkedHashSet;
 
 public class UnitString extends ProtocolUnit {
 
 	private String value;
 
 	@Override
-	public String read(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+	public String read(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, DownlinkState linkState) {
 
 		Short length;
 
@@ -63,7 +64,7 @@ public class UnitString extends ProtocolUnit {
 	}
 
 	@Override
-	public String write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+	public String write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
 		while(true) {
 			try {
@@ -100,7 +101,7 @@ public class UnitString extends ProtocolUnit {
 	}
 
 	@Override
-	public String pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+	public String pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, byte[] buffer, DownlinkState linkState) {
 		Short length;
 
 		while(true) {

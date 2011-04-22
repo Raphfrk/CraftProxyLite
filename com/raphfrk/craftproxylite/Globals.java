@@ -90,7 +90,7 @@ public class Globals {
 		
 	}
 	
-	static private int clientVersion = 10;
+	static private int clientVersion = 11;
 	
 	public synchronized static int getClientVersion() {
 		return clientVersion;
@@ -150,13 +150,13 @@ public class Globals {
 		Globals.threshold = threshold;
 	}
 	
-	static private byte dimension = 0;
+	static private Byte dimension = null;
 	
-	public synchronized static byte getDimension() {
+	public synchronized static Byte getDimension() {
 		return dimension;
 	}
 	
-	public synchronized static void setDimension( byte dimension ) {
+	public synchronized static void setDimension( Byte dimension ) {
 		Globals.dimension = dimension;
 	}
 }

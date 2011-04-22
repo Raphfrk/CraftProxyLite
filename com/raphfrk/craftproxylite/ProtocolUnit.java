@@ -2,20 +2,21 @@ package com.raphfrk.craftproxylite;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.util.LinkedHashSet;
 
-public abstract class ProtocolUnit {
+public abstract class ProtocolUnit implements Cloneable {
 	
 	int timeout = 0;
 	
-	public Object read(DataInputStream in, PassthroughConnection connection, KillableThread thread) {
+	public Object read(DataInputStream in, PassthroughConnection connection, KillableThread thread, boolean serverToClient, DownlinkState linkState) {
 		return null;
 	}
 	
-	public Object write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+	public Object write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 		return null;
 	}
 	
-	public Object pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+	public Object pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, byte[] buffer, DownlinkState linkState) {
 		return null;
 	}
 	
@@ -38,6 +39,15 @@ public abstract class ProtocolUnit {
 			}
 		} else {
 			return false;
+		}
+	}
+	
+	@Override
+	public ProtocolUnit clone() {
+		try {
+			return (ProtocolUnit)super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException( "Clone failure" , e);
 		}
 	}
 	

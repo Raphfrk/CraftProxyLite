@@ -13,7 +13,7 @@ public class PassthroughConnection extends KillableThread {
 	private final int listenPort;
 	protected final ClientInfo clientInfo;
 
-	private boolean forward = true;
+	private boolean forward = false;
 
 	private Object enabledSync = new Object();
 	private boolean enabled = true;
@@ -58,11 +58,14 @@ public class PassthroughConnection extends KillableThread {
 			connected = false;
 		}
 
-		String hostname = "localhost";
-		int portnum = defaultPort;
+		String hostname = ReconnectCache.get(clientInfo.getUsername());
+		int portnum = ReconnectCache.getPort(hostname, defaultPort);
+		hostname = ReconnectCache.getHost(hostname, "localhost");
+
 		boolean firstConnection = true;
 
 		while(connected && !killed()) {
+
 			Socket serverBasicSocket = LocalSocket.openSocket(hostname, portnum, this);
 			if(serverBasicSocket == null) {
 				printLogMessage("Unable to open connection to backend server");
@@ -83,45 +86,85 @@ public class PassthroughConnection extends KillableThread {
 				PacketFFKick.kick(clientSocket.out, this, this, kickMessage);
 				connected = false;
 			}
-
 			if(connected) {
-				if(forward) {
-					serverToClient = new DataStreamBridge(serverSocket.in, clientSocket.out, this);
-					clientToServer = new DataStreamBridge(clientSocket.in, serverSocket.out, this);
-				}
+				ReconnectCache.store(clientInfo.getUsername(), hostname, portnum);
 
-				boolean localEnabled;
-				synchronized(enabledSync) {
-					localEnabled = enabled;
-					if(enabled) {
-						serverToClient.start();
-						clientToServer.start();
-					}
-				}
+				Packet01Login serverLoginPacket = new Packet01Login(serverSocket.in, this, this);
 
-				if(localEnabled) {
-					while((clientToServer.isAlive() || serverToClient.isAlive())) {
-						try {
-							clientToServer.join(500);
-							serverToClient.join(500);
-						} catch (InterruptedException ie) {
-							kill();
+				if(serverLoginPacket.packetId == null || serverLoginPacket.read(serverSocket.in, this, this, true, null) == null) {
+					printLogMessage("Server sent bad packet");
+					connected = false;
+				} else {
+
+					clientInfo.setPlayerEntityId(serverLoginPacket.getVersion());
+
+					if(firstConnection) {
+						firstConnection = false;
+						Packet01Login clientLoginPacket = new Packet01Login(clientSocket.out, this, this);
+						//if(!forward) {
+						//	clientLoginPacket.setVersion(Globals.getDefaultPlayerId());
+						//} else {
+							clientLoginPacket.setVersion(serverLoginPacket.getVersion());
+						//}
+						if(Globals.getDimension() == null) {
+							printLogMessage("Using dimension from server packet: " + serverLoginPacket.getDimension());
+							clientLoginPacket.setDimension(serverLoginPacket.getDimension());
+						} else {
+							printLogMessage("Using default dimension: " + Globals.getDimension());
+							clientLoginPacket.setDimension(Globals.getDimension());
 						}
-						if(killed() || (!(clientToServer.isAlive() && serverToClient.isAlive()))) {
-							clientToServer.interrupt();
-							serverToClient.interrupt();
+						clientLoginPacket.setMapSeed(serverLoginPacket.getMapSeed());
+						clientLoginPacket.setUsername(serverLoginPacket.getUsername());
+						if(clientLoginPacket.packetId == null || clientLoginPacket.write(clientSocket.out, this, this, true) == null) {
+							printLogMessage("Failed to write login packet to client");
+							connected = false;
+						}
+					}
+
+					if(connected) {
+						if(forward) {
+							serverToClient = new DataStreamBridge(serverSocket.in, clientSocket.out, this);
+							clientToServer = new DataStreamBridge(clientSocket.in, serverSocket.out, this);
+							connected = false;
+						} else {
+							serverToClient = new DataStreamDownLinkBridge(serverSocket.in, clientSocket.out, this);
+							clientToServer = new DataStreamUpLinkBridge(clientSocket.in, serverSocket.out, this);
+							connected = false;
+						}
+
+						boolean localEnabled;
+						synchronized(enabledSync) {
+							localEnabled = enabled;
+							if(enabled) {
+								serverToClient.start();
+								clientToServer.start();
+							}
+						}
+
+						if(localEnabled) {
+							while((clientToServer.isAlive() || serverToClient.isAlive())) {
+								try {
+									clientToServer.join(500);
+									serverToClient.join(500);
+								} catch (InterruptedException ie) {
+									kill();
+								}
+								if(killed() || (!(clientToServer.isAlive() && serverToClient.isAlive()))) {
+									clientToServer.interrupt();
+									serverToClient.interrupt();
+								}
+							}
 						}
 					}
 				}
 			}
-
-			if(!getKickMessageSent()) {
-				PacketFFKick.kick(clientSocket.out, this, this, "Connection closed");
-			}
-
 
 			printLogMessage("Closing connection to server");
 			LocalSocket.closeSocket(serverSocket.socket, this);
+		}
+
+		if(!getKickMessageSent()) {
+			PacketFFKick.kick(clientSocket.out, this, this, "Connection closed");
 		}
 
 		printLogMessage("Closing connection to client");
