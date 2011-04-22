@@ -21,6 +21,9 @@ public class UnitEntityId extends ProtocolUnit {
 						value = Globals.getDefaultPlayerId();
 					} else if (value == Globals.getDefaultPlayerId()) {
 						ptc.printLogMessage("Player entity id collision (server to client) - breaking connection");
+						ptc.printLogMessage("Value: " + value);
+						ptc.printLogMessage("Default: " + Globals.getDefaultPlayerId());
+						ptc.printLogMessage("Active: " +  ptc.clientInfo.getPlayerEntityId());
 						return null;
 					} else {
 						linkState.entityIds.add(value);
@@ -30,6 +33,9 @@ public class UnitEntityId extends ProtocolUnit {
 						value = ptc.clientInfo.getPlayerEntityId();
 					} else if (value == ptc.clientInfo.getPlayerEntityId()) {
 						ptc.printLogMessage("Player entity id collision (client to server)- breaking connection");
+						ptc.printLogMessage("Value: " + value);
+						ptc.printLogMessage("Default: " + Globals.getDefaultPlayerId());
+						ptc.printLogMessage("Active: " +  ptc.clientInfo.getPlayerEntityId());
 						return null;
 					}
 				}
@@ -88,6 +94,11 @@ public class UnitEntityId extends ProtocolUnit {
 	
 	public void setValue(Integer value) {
 		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return (String)value.toString();
 	}
 
 }

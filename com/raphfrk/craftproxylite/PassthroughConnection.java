@@ -101,11 +101,11 @@ public class PassthroughConnection extends KillableThread {
 					if(firstConnection) {
 						firstConnection = false;
 						Packet01Login clientLoginPacket = new Packet01Login(clientSocket.out, this, this);
-						//if(!forward) {
-						//	clientLoginPacket.setVersion(Globals.getDefaultPlayerId());
-						//} else {
+						if(!forward) {
+							clientLoginPacket.setVersion(Globals.getDefaultPlayerId());
+						} else {
 							clientLoginPacket.setVersion(serverLoginPacket.getVersion());
-						//}
+						}
 						if(Globals.getDimension() == null) {
 							printLogMessage("Using dimension from server packet: " + serverLoginPacket.getDimension());
 							clientLoginPacket.setDimension(serverLoginPacket.getDimension());

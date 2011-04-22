@@ -4,19 +4,16 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.LinkedHashSet;
 
-public class UnitFixed extends ProtocolUnit {
+public class UnitIntSizedByteArray extends ProtocolUnit {
 
-	private int length;
+	UnitInteger lengthUnit = new UnitInteger();
+	
+	private Integer length;
 	private byte[] value = null;
 
-	UnitFixed(int length) {
-		this.length = length;
-	}
-
 	void setupBuffer(byte[] buffer) {
-		if(value == null) {
+		if(value == null || value.length < length) {
 			if(buffer == null || buffer.length < length) {
 				value = new byte[length];
 			} else {
@@ -28,6 +25,11 @@ public class UnitFixed extends ProtocolUnit {
 	@Override
 	public byte[] read(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, DownlinkState linkState) {
 
+		length = lengthUnit.read(in, ptc, thread, serverToClient, linkState);
+		if(length == null) {
+			return null;
+		}
+		
 		setupBuffer(null);
 
 		int pos = 0;
@@ -58,6 +60,11 @@ public class UnitFixed extends ProtocolUnit {
 	@Override
 	public byte[] write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		length = lengthUnit.write(out, ptc, thread, serverToClient);
+		if(length == null) {
+			return null;
+		}
+		
 		while(true) {
 			try {
 				out.write(value, 0, length);
@@ -80,13 +87,69 @@ public class UnitFixed extends ProtocolUnit {
 
 	@Override
 	public byte[] pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, byte[] buffer, DownlinkState linkState) {
-		setupBuffer(buffer);
-		read(in, ptc, thread, serverToClient, linkState);
-		if(value != null) {
-			return write(out, ptc, thread, serverToClient);
-		} else {
+		
+		length = lengthUnit.read(in, ptc, thread, serverToClient, linkState);
+		if(length == null) {
 			return null;
 		}
+		
+		length = lengthUnit.write(out, ptc, thread, serverToClient);
+		if(length == null) {
+			return null;
+		}
+		
+		if(buffer == null) {
+			setupBuffer(buffer);
+		} else if(value == null) {
+			value = buffer;
+		}
+		
+		buffer = value;
+		
+		int pos = 0;
+		
+		int bufLength = buffer.length;
+
+		while(pos < length) {
+			int read;
+			bufLength = Math.min(bufLength, length - pos);
+			try {
+				read = in.read(value, 0, bufLength);
+			} catch (SocketTimeoutException ste) {
+				if(!thread.killed()) {
+					timeout++;
+					if(timeout > 20) {
+						ptc.printLogMessage("Connection timed out");
+						return null;
+					}
+					continue;
+				}
+				return null;
+			} catch (IOException e) {
+				ptc.printLogMessage("Unable to read from socket");
+				return null;
+			}
+			try {
+				out.write(value, 0, read);
+			} catch (SocketTimeoutException ste) {
+				if(!thread.killed()) {
+					timeout++;
+					if(timeout > 20) {
+						ptc.printLogMessage("Connection timed out");
+						return null;
+					}
+					continue;
+				}
+				return null;
+			} catch (IOException e) {
+				ptc.printLogMessage("Unable to read from socket");
+				return null;
+			}
+			pos += read;
+		}
+		
+		return buffer;
+		
 	}
 
 	@Override
