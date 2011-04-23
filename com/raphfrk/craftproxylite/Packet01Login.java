@@ -35,7 +35,7 @@ public class Packet01Login extends Packet {
 		}
 		
 		ptc.clientInfo.setUsername(CtSHandshake.getUsername());
-		ptc.printLogMessage("Player attempting to log in to proxy");
+		ptc.printLogMessage(CtSHandshake.getUsername() + " attempting to log in to proxy");
 		
 		Packet02Handshake StCHandshake = new Packet02Handshake(out, ptc, thread);
 		

@@ -66,6 +66,12 @@ public class PassthroughConnection extends KillableThread {
 			PacketFFKick.kick(clientSocket.out, this, this, kickMessage);
 			connected = false;
 		}
+		
+		if(BanList.banned(clientInfo.getUsername())) {
+			printLogMessage(clientInfo.getUsername() + " is banned");
+			PacketFFKick.kick(clientSocket.out, this, this, "Your account name is on the proxy ban list");
+			connected = false;
+		}
 
 		String hostname = ReconnectCache.get(clientInfo.getUsername());
 		int portnum = ReconnectCache.getPort(hostname, defaultPort);
