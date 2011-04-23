@@ -17,6 +17,8 @@ public class DataStreamUpLinkBridge extends KillableThread {
 	
 	public void run() {
 		
+		ByteCircleBuffer bcb = new ByteCircleBuffer(20);
+		
 		boolean eof = false;
 		
 		byte[] buffer = new byte[131072]; // buffer used for passthrough temp storage
@@ -45,6 +47,12 @@ public class DataStreamUpLinkBridge extends KillableThread {
 			}
 			
 			Packet currentPacket = new Packet(packetId);
+			
+			bcb.write(packetId);
+
+			if(currentPacket.critical) {
+				ptc.printLogMessage("Previous packets (Oldest -> Newest): " + bcb);
+			}
 			
 			if(Globals.isVerbose()) {
 				ptc.printLogMessage("Transferring packet: " + Integer.toHexString(packetId & 0xFF));

@@ -102,6 +102,7 @@ public class Packet extends ProtocolUnit {
 	}
 
 	final Byte packetId;
+	final Boolean critical;
 
 	Packet(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
 		this(UnitByte.getByteSkipZeros(in, ptc, null));
@@ -113,9 +114,11 @@ public class Packet extends ProtocolUnit {
 
 	Packet(Byte packetId) {
 		if(packetId != null && packetInfo[((int)packetId) & 0xFF] == null) {
+			critical = true;
 			Logging.log("CRITICAL ERROR unknown packet id: " + packetId);
 			this.packetId = null;
 		} else {
+			critical = false;
 			this.packetId = packetId;
 		}
 	}

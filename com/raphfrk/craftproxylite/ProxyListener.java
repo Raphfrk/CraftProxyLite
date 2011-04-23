@@ -116,7 +116,6 @@ public class ProxyListener extends KillableThread {
 				PassthroughConnection ptc = new PassthroughConnection(socket , defaultPort, password , port );
 				ptc.start();
 				addPassthroughConnection(ptc);
-				
 			}
 			
 			

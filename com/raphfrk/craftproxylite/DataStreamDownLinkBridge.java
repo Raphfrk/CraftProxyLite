@@ -17,6 +17,8 @@ public class DataStreamDownLinkBridge extends KillableThread {
 	}
 
 	public void run() {
+		
+		ByteCircleBuffer bcb = new ByteCircleBuffer(20);
 
 		boolean eof = false;
 
@@ -33,7 +35,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 				eof = true;
 				continue;
 			}
-
+			
 			if(packetId == (byte)0xFF) {
 						
 				PacketFFKick kickPacket = new PacketFFKick((byte)0xFF);
@@ -96,7 +98,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 				}
 				
 			} else {
-
+				
 				if(UnitByte.writeByte(out, packetId, ptc, this) == null) {
 					if(!Globals.isQuiet()) {
 						ptc.printLogMessage("Unable to write packet id");
@@ -106,6 +108,12 @@ public class DataStreamDownLinkBridge extends KillableThread {
 				}
 
 				Packet currentPacket = new Packet(packetId);
+				
+				bcb.write(packetId);
+
+				if(currentPacket.critical) {
+					ptc.printLogMessage("Previous packets (Oldest -> Newest): " + bcb);
+				}
 
 				if(Globals.isVerbose()) {
 					ptc.printLogMessage("Transferring packet: " + Integer.toHexString(packetId & 0xFF));

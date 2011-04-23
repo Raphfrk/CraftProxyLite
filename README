@@ -1,20 +1,20 @@
-Note: This doesn't actually work yet.
-
 To start use:
 
 java -jar CraftProxyLite.jar <port to bind to> <default port> [<password>] [verbose]
 
 If your server is on the same server as the proxy and uses port 25565, you could use
 
-java -jar CraftProxyLite.jar 20000 25565 somepassword
+java -jar CraftProxyLite.jar 20000 25565 quiet reconnectfile connect.txt banned banned.txt log log.txt
 
 Players would connect using yourhostname.com:20000
+
+The banned list is one name per line
 
 Setup
 
 mkdir src
 cd src
-git clone git://github.com/Raphfrk/CraftProxy.git
+git clone git://github.com/Raphfrk/CraftProxyLite.git
 cd ..
 mkdir temp
 cd temp

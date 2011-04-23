@@ -3,6 +3,7 @@ package com.raphfrk.craftproxylite;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -17,10 +18,19 @@ public class LocalSocket {
 	public final PassthroughConnection ptc;
 
 	public static Socket openSocket(String hostname, int port, PassthroughConnection ptc) {
-
+		
 		Socket socket = null;
+
 		try {
-			socket = new Socket(hostname, port);
+			if(hostname.trim().startsWith("localhost")) {
+				String fakeLocalIP = LocalhostIPFactory.getNextIP();
+				if(!Globals.isQuiet()) {
+					ptc.printLogMessage("Connecting to: " + hostname + ":" + port + " from " + fakeLocalIP );
+				}
+				socket = new Socket(hostname, port, InetAddress.getByName(fakeLocalIP), 0);
+			} else {
+				socket = new Socket(hostname, port);
+			}
 		} catch (UnknownHostException e) {
 			ptc.printLogMessage("Unknown hostname: " + hostname);
 			return null;
