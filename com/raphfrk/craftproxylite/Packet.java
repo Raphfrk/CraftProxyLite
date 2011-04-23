@@ -16,6 +16,7 @@ public class Packet extends ProtocolUnit {
 	final static UnitShort                    unitShort                    = new UnitShort();
 	final static UnitFloat                    unitFloat                    = new UnitFloat();
 	final static UnitString                   unitString                   = new UnitString();
+	final static UnitString8                  unitString8                  = new UnitString8();
 	final static UnitEntityId                 unitEntity                   = new UnitEntityId();
 	final static UnitBoolean                  unitBoolean                  = new UnitBoolean();
 	final static UnitItemStack                unitItemStack                = new UnitItemStack();
@@ -44,7 +45,7 @@ public class Packet extends ProtocolUnit {
 		packetInfo[0x0C] = new ProtocolUnit[] {new UnitFixed(9)};
 		packetInfo[0x0D] = new ProtocolUnit[] {new UnitFixed(41)};
 		packetInfo[0x0E] = new ProtocolUnit[] {new UnitFixed(11)};
-		packetInfo[0x0F] = new ProtocolUnit[] {new UnitFixed(10), unitIntSizedByteArray, unitItemStack};
+		packetInfo[0x0F] = new ProtocolUnit[] {new UnitFixed(10), unitItemStack};
 		packetInfo[0x10] = new ProtocolUnit[] {unitShort};
 		packetInfo[0x11] = new ProtocolUnit[] {unitEntity, new UnitFixed(10)};
 		packetInfo[0x12] = new ProtocolUnit[] {unitEntity, unitByte};
@@ -72,13 +73,13 @@ public class Packet extends ProtocolUnit {
 		packetInfo[0x34] = new ProtocolUnit[] {new UnitFixed(8), unitShortSizedQuadByteArray};
 		packetInfo[0x35] = new ProtocolUnit[] {new UnitFixed(11)};
 		packetInfo[0x36] = new ProtocolUnit[] {new UnitFixed(12)};
-		packetInfo[0x3C] = new ProtocolUnit[] {new UnitFixed(12), unitIntSizedTripleByteArray};
+		packetInfo[0x3C] = new ProtocolUnit[] {new UnitFixed(28), unitIntSizedTripleByteArray};
 		
 		packetInfo[0x46] = new ProtocolUnit[] {unitByte};
 		
 		packetInfo[0x47] = new ProtocolUnit[] {unitEntity, new UnitFixed(13)};
 		
-		packetInfo[0x64] = new ProtocolUnit[] {unitByte, unitByte, unitString, unitByte};
+		packetInfo[0x64] = new ProtocolUnit[] {unitByte, unitByte, unitString8, unitByte};
 		packetInfo[0x65] = new ProtocolUnit[] {unitByte};
 		packetInfo[0x66] = new ProtocolUnit[] {new UnitFixed(7), unitItemStack};
 		packetInfo[0x67] = new ProtocolUnit[] {new UnitFixed(3), unitItemStack};
@@ -112,7 +113,8 @@ public class Packet extends ProtocolUnit {
 
 	Packet(Byte packetId) {
 		if(packetId != null && packetInfo[((int)packetId) & 0xFF] == null) {
-			throw new RuntimeException("Critical error unknown packet id: " + packetId);
+			System.out.println("CRITICAL ERROR unknown packet id: " + packetId);
+			this.packetId = null;
 		} else {
 			this.packetId = packetId;
 		}
@@ -178,11 +180,15 @@ public class Packet extends ProtocolUnit {
 				ptc.printLogMessage((serverToClient? "S->C" : "C->S") + "       " + fields[cnt].getClass().toString());
 			}
 			Object val = fields[cnt].pass(in, out, ptc, thread, serverToClient, buffer, linkState);
-			if(Globals.isVerbose()) {
-				ptc.printLogMessage(cnt + " " + val);
-			}
 			if(val==null) {
 				return null;
+			}
+			if(Globals.isVerbose()) {
+				if(fields[cnt].getClass().equals(UnitFixed.class)) {
+					ptc.printLogMessage(cnt + " " + fields[cnt]);
+				} else {
+					ptc.printLogMessage(cnt + " " + val);
+				}
 			}
 		}
 		entityDestroyCheck(linkState);

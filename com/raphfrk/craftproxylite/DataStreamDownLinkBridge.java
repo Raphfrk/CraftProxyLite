@@ -99,7 +99,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 					ptc.printLogMessage("Transferring packet: " + packetId);
 				}
 
-				if(currentPacket.pass(in, out, ptc, this, true, buffer, linkState) == null) {
+				if(currentPacket.packetId == null || currentPacket.pass(in, out, ptc, this, true, buffer, linkState) == null) {
 					if(!Globals.isQuiet()) {
 						ptc.printLogMessage("Unable to transfer packet");
 					}

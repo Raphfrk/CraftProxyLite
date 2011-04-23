@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 
 public class UnitFixed extends ProtocolUnit {
@@ -96,6 +97,22 @@ public class UnitFixed extends ProtocolUnit {
 
 	public void setValue(byte[] value) {
 		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("[");
+		boolean first = true;
+		for(int cnt=0;cnt<length;cnt++) {
+			if(first) {
+				first = false;
+				sb.append(value[cnt]);
+			} else {
+				sb.append(", " + value[cnt]);
+			}
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 
 }

@@ -33,7 +33,7 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 		length *= 3;
 		
 		if(length > 16384) {
-			ptc.printLogMessage("Explosion to large, breaking connection");
+			ptc.printLogMessage("Explosion to large " + length + " , breaking connection");
 			return null;
 		}
 		
@@ -113,7 +113,7 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 		length = length * 3;
 		
 		if(length > 16384) {
-			ptc.printLogMessage("Explosion to large, breaking connection");
+			ptc.printLogMessage("Explosion to large " + length + " , breaking connection");
 			return null;
 		}
 		

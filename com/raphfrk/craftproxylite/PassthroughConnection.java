@@ -17,7 +17,7 @@ public class PassthroughConnection extends KillableThread {
 	private Object holdingSync = new Object(); // not really required
 	private short holding = 0;
 	
-	DateFormat shortTime = DateFormat.getTimeInstance(DateFormat.SHORT);
+	DateFormat shortTime = DateFormat.getTimeInstance(DateFormat.MEDIUM);
 
 	private boolean forward = false;
 

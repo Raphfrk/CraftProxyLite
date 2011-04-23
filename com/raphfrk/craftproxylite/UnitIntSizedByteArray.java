@@ -9,7 +9,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 
 	UnitInteger lengthUnit = new UnitInteger();
 	
-	private Integer length;
+	private Integer length = 0;
 	private byte[] value = null;
 
 	void setupBuffer(byte[] buffer) {
@@ -27,6 +27,11 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 
 		length = lengthUnit.read(in, ptc, thread, serverToClient, linkState);
 		if(length == null) {
+			return null;
+		}
+		
+		if(length > 262144) {
+			ptc.printLogMessage("Byte array out of allowed range (" + length + ") - breaking connection");
 			return null;
 		}
 		
@@ -93,12 +98,17 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			return null;
 		}
 		
+		if(length > 262144) {
+			ptc.printLogMessage("Byte array out of allowed range (" + length + ") - breaking connection");
+			return null;
+		}
+
 		length = lengthUnit.write(out, ptc, thread, serverToClient);
 		if(length == null) {
 			return null;
 		}
 		
-		if(buffer == null) {
+		if(buffer == null || buffer.length < length) {
 			setupBuffer(buffer);
 		} else if(value == null) {
 			value = buffer;
@@ -109,7 +119,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		int pos = 0;
 		
 		int bufLength = buffer.length;
-
+		
 		while(pos < length) {
 			int read;
 			bufLength = Math.min(bufLength, length - pos);
@@ -129,6 +139,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 				ptc.printLogMessage("Unable to read from socket");
 				return null;
 			}
+			
 			try {
 				out.write(value, 0, read);
 			} catch (SocketTimeoutException ste) {

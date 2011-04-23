@@ -50,7 +50,7 @@ public class DataStreamUpLinkBridge extends KillableThread {
 				ptc.printLogMessage("Transferring packet: " + packetId);
 			}
 			
-			if(currentPacket.pass(in, out, ptc, this, false, buffer, null) == null) {
+			if(currentPacket.packetId == null || currentPacket.pass(in, out, ptc, this, false, buffer, null) == null) {
 				if(!Globals.isQuiet()) {
 					ptc.printLogMessage("Unable to transfer packet");
 				}
