@@ -113,7 +113,7 @@ public class Packet extends ProtocolUnit {
 
 	Packet(Byte packetId) {
 		if(packetId != null && packetInfo[((int)packetId) & 0xFF] == null) {
-			System.out.println("CRITICAL ERROR unknown packet id: " + packetId);
+			Logging.log("CRITICAL ERROR unknown packet id: " + packetId);
 			this.packetId = null;
 		} else {
 			this.packetId = packetId;

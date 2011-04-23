@@ -37,29 +37,29 @@ public class ProxyListener extends KillableThread {
 			listener = new ServerSocket(port);
 			listener.setSoTimeout(1000);
 		} catch (BindException be) {
-			System.out.println( "Unable to bind to port");
+			Logging.log( "Unable to bind to port");
 			if( listener != null ) {
 				try {
 					listener.close();
 				} catch (IOException e) {
-					System.out.println( "Unable to close connection");
+					Logging.log( "Unable to close connection");
 				}
 			}
 			return;
 		} catch (IOException ioe) {
-			System.out.println("Unknown error");	
+			Logging.log("Unknown error");	
 			ioe.printStackTrace();
 			if( listener != null ) {
 				try {
 					listener.close();
 				} catch (IOException e) {
-					System.out.println( "Unable to close connection");
+					Logging.log( "Unable to close connection");
 				}
 			}
 			return;
 		} 
 		
-		System.out.println("Server listening on port: " + port);
+		Logging.log("Server listening on port: " + port);
 		
 		while(!killed()) {
 			
@@ -68,11 +68,11 @@ public class ProxyListener extends KillableThread {
 				socket = listener.accept();
 			} catch (SocketTimeoutException ste ) {
 				if( socket != null ) {
-					System.out.println("Socket not null after timeout" );
+					Logging.log("Socket not null after timeout" );
 				}
 				continue;
 			} catch (IOException e) {
-				System.out.println("Error waiting for connection");
+				Logging.log("Error waiting for connection");
 				e.printStackTrace();
 				continue;
 			}
@@ -83,12 +83,12 @@ public class ProxyListener extends KillableThread {
 			try {
 				socket.setSoTimeout(1000);
 			} catch (SocketException e) {
-				System.out.println( "Unable to set timeout for socket");
+				Logging.log( "Unable to set timeout for socket");
 				if(socket != null) {
 					try {
 						socket.close();
 					} catch (IOException e1) {
-						System.out.println("Unable to close connection");
+						Logging.log("Unable to close connection");
 					}
 					continue;
 				}
@@ -97,20 +97,20 @@ public class ProxyListener extends KillableThread {
 			
 			String address = socket.getInetAddress().getHostAddress().toString();
 			int port = socket.getPort();
-			System.out.println("Connection from " + address + "/" + port);
+			Logging.log("Connection from " + address + "/" + port);
 			long currentTime = System.currentTimeMillis();
 			Long lastConnect = lastLogin.get(address);
 			boolean floodProtection = lastConnect != null && lastConnect + 5000 > currentTime;
 			lastLogin.put(address, currentTime);
 			if(floodProtection) {
-				System.out.println("Disconnecting due to connect flood protection");
+				Logging.log("Disconnecting due to connect flood protection");
 				try {
 					DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
 					PacketFFKick.kick(outputStream, null, null, "Only one connection is allowed per IP every 5 seconds");
 					outputStream.flush();
 					socket.close();
 				} catch (IOException e) {
-					System.out.println("Exception when closing connection");
+					Logging.log("Exception when closing connection");
 				}
 			} else {
 				PassthroughConnection ptc = new PassthroughConnection(socket , defaultPort, password , port );

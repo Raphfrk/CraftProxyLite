@@ -63,16 +63,6 @@ public class DataStreamUpLinkBridge extends KillableThread {
 				ptc.setHolding(holding);
 			}
 			
-			if(currentPacket.packetId == 0x47) {
-				Packet47Weather w = new Packet47Weather(currentPacket);
-				System.out.println(w);
-				System.out.println("Weather packet");
-			}
-			
-			if(currentPacket.packetId == 0x1B) {
-				System.out.println("1b packet C->S");
-			}
-			
 		}
 		
 		ptc.interrupt();

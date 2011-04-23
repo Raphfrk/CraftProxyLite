@@ -19,7 +19,7 @@ public class Main {
 
 	public static void main(String [] args) {
 
-		System.out.println( "Starting Craftproxy-lite version " +  VersionNumbering.version );
+		Logging.log( "Starting Craftproxy-lite version " +  VersionNumbering.version );
 
 		int listenPort;
 		int defaultPort;
@@ -28,7 +28,7 @@ public class Main {
 		String usageString = "craftproxy <port to listen to> <default port> [hell] [quiet] [reconnectfile path_to_file] [verbose] [info] [auth] [clientversion num] [delay num] [local_alias alias] [debug] [banned banfile]";
 
 		if( args.length < 2 ) {
-			System.out.println( "Usage: " + usageString );
+			Logging.log( "Usage: " + usageString );
 			if(consoleInput) {
 				System.exit(0);
 			}
@@ -57,35 +57,36 @@ public class Main {
 					else if( args[pos].equals("delay"))		   { Globals.setDelay(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("window"))		   { Globals.setWindow(Long.parseLong(args[pos+1])); pos++;}
 					else if( args[pos].equals("threshold"))		   { Globals.setThreshold(Long.parseLong(args[pos+1])); pos++;}
+					else if( args[pos].equals("log"))              { Logging.setFilename(args[pos+1]) ; pos++;}
 					else                                         password = new String(args[pos]); // game password - not used
 
 				}
 
 			} catch (NumberFormatException nfe) {
-				System.out.println( "Unable to parse numbers");
-				System.out.println( "Usage: " + usageString );
+				Logging.log( "Unable to parse numbers");
+				Logging.log( "Usage: " + usageString );
 				System.exit(0);
 				return;
 			}
 		}
 
 		if( !Globals.isAuth() ) {
-			System.out.println( "" );
-			System.out.println( "WARNING: You have not enabled player name authentication");
-			System.out.println( "WARNING: This means that player logins are not checked with the minecraft server");
-			System.out.println( "" );
-			System.out.println( "To enable name authentication, add auth to the command line" );
-			System.out.println( "" );
+			Logging.log( "" );
+			Logging.log( "WARNING: You have not enabled player name authentication");
+			Logging.log( "WARNING: This means that player logins are not checked with the minecraft server");
+			Logging.log( "" );
+			Logging.log( "To enable name authentication, add auth to the command line" );
+			Logging.log( "" );
 		} else {
-			System.out.println( "Name authentication enabled");
+			Logging.log( "Name authentication enabled");
 		}
 
 		if( !ReconnectCache.isSet() ) {
-			System.out.println( "WARNING: reconnectfile parameter not set");
-			System.out.println( "WARNING: players will be connected to the default server regardless of last server connected to");
+			Logging.log( "WARNING: reconnectfile parameter not set");
+			Logging.log( "WARNING: players will be connected to the default server regardless of last server connected to");
 		}
 
-		System.out.println( "Use \"end\" to stop the server");
+		Logging.log( "Use \"end\" to stop the server");
 
 		ProxyListener server = new ProxyListener( listenPort, defaultPort, password );
 
@@ -108,7 +109,7 @@ public class Main {
 			ReconnectCache.save();
 			server.interrupt();
 		} else {
-			System.out.println("Server console disabled");
+			Logging.log("Server console disabled");
 			while(true) {
 				try {
 					synchronized(sleeper) {
@@ -123,19 +124,20 @@ public class Main {
 			}
 		}
 		
-		System.out.println("Waiting for server to close");
+		Logging.log("Waiting for server to close");
 		try {
 			server.join();
 		} catch (InterruptedException e) {
-			System.out.println("Server interrupted while closing");
+			Logging.log("Server interrupted while closing");
 		}
+		
+		Logging.flush();
 
 	}
 
 	public static void killServer() {
 
-		System.out.println("Killing server from Bukkit");
-		System.out.println("Note: Players must disconnect for threads to end");
+		Logging.log("Killing server from Bukkit");
 
 		synchronized(sleeper) {
 			serverEnabled = false;

@@ -234,9 +234,9 @@ public class PassthroughConnection extends KillableThread {
 	synchronized void printLogMessage(String message) {
 		String username = clientInfo.getUsername();
 		if(username == null) {
-			System.out.println("[" + shortTime.format(new Date()) + "] " + clientInfo.getIP() + "/" + clientInfo.getPort() + ": " + message);
+			Logging.log("[" + shortTime.format(new Date()) + "] " + clientInfo.getIP() + "/" + clientInfo.getPort() + ": " + message);
 		} else {
-			System.out.println("[" + shortTime.format(new Date()) + "] " + clientInfo.getIP() + "/" + clientInfo.getPort() + " (" + username + "): " + message);
+			Logging.log("[" + shortTime.format(new Date()) + "] " + clientInfo.getIP() + "/" + clientInfo.getPort() + " (" + username + "): " + message);
 		}
 	}
 
