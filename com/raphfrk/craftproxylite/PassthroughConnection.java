@@ -14,6 +14,9 @@ public class PassthroughConnection extends KillableThread {
 	private final int listenPort;
 	protected final ClientInfo clientInfo;
 	
+	private Object holdingSync = new Object(); // not really required
+	private short holding = 0;
+	
 	DateFormat shortTime = DateFormat.getTimeInstance(DateFormat.SHORT);
 
 	private boolean forward = false;
@@ -147,10 +150,21 @@ public class PassthroughConnection extends KillableThread {
 						clientLoginPacket.setMapSeed(serverLoginPacket.getMapSeed());
 						clientLoginPacket.setUsername(serverLoginPacket.getUsername());
 						if(clientLoginPacket.packetId == null || clientLoginPacket.write(clientSocket.out, this, this, true) == null) {
-							if(Globals.isVerbose()) {
-								printLogMessage("Failed to write login packet to client");
-							}
+							printLogMessage("Failed to write login packet to client");
 							connected = false;
+						}
+					} else {
+						short holdingLocal = getHolding();
+						if(holdingLocal != 0) {
+							if(!Globals.isQuiet()) {
+								printLogMessage("Updating holding slot to " + holding);
+							}
+							Packet10HoldingChange holdingChange = new Packet10HoldingChange(serverSocket.out, this, this);
+							holdingChange.setSlot(holding);
+							if(holdingChange.packetId == null || holdingChange.write(serverSocket.out, this, this, false) == null) {
+								printLogMessage("Failed to write holding change update packet");
+								connected = false;
+							}
 						}
 					}
 
@@ -203,7 +217,7 @@ public class PassthroughConnection extends KillableThread {
 		}
 
 		if(!getKickMessageSent()) {
-			PacketFFKick.kick(clientSocket.out, this, this, "Connection closed");
+			PacketFFKick.kick(clientSocket.out, this, this, "Connection closed by proxy");
 		}
 
 		printLogMessage("Closing connection to client");
@@ -263,6 +277,18 @@ public class PassthroughConnection extends KillableThread {
 	public String getRedirect() {
 		synchronized(redirectSync) {
 			return(redirect);
+		}
+	}
+	
+	public void setHolding(Short holding) {
+		synchronized(holdingSync) {
+			this.holding = holding;
+		}
+	}
+	
+	public Short getHolding() {
+		synchronized(holdingSync) {
+			return(holding);
 		}
 	}
 	

@@ -58,6 +58,11 @@ public class DataStreamUpLinkBridge extends KillableThread {
 				continue;
 			}
 			
+			if(packetId == 0x10) {
+				Short holding = (Short)((UnitShort)(currentPacket.fields[0])).getValue();
+				ptc.setHolding(holding);
+			}
+			
 		}
 		
 		ptc.interrupt();

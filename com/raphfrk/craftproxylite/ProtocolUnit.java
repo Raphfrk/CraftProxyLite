@@ -21,7 +21,7 @@ public abstract class ProtocolUnit implements Cloneable {
 	}
 	
 	public Object getValue() {
-		throw new RuntimeException("attempted to set value to unextended ProtocolUnit");
+		throw new RuntimeException("attempted to get value to unextended ProtocolUnit");
 	}
 	
 	public void setValue(Object value) {

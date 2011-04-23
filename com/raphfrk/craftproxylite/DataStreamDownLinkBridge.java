@@ -8,6 +8,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 	final DataInputStream in;
 	final DataOutputStream out;
 	final PassthroughConnection ptc;
+	final DownlinkState linkState = new DownlinkState();
 
 	DataStreamDownLinkBridge(DataInputStream in, DataOutputStream out, PassthroughConnection ptc) {
 		this.in = in;
@@ -20,8 +21,6 @@ public class DataStreamDownLinkBridge extends KillableThread {
 		boolean eof = false;
 
 		byte[] buffer = new byte[131072]; // buffer used for passthrough temp storage
-
-		DownlinkState linkState = new DownlinkState();
 
 		while(!eof && !super.killed()) {
 
@@ -56,6 +55,28 @@ public class DataStreamDownLinkBridge extends KillableThread {
 				if(redirect != null) {
 					ptc.printLogMessage("Redirect detected: " + redirect);
 					ptc.setRedirect(redirect);
+					if(!destroyEntities()) {
+						ptc.printLogMessage("Unable to destroy entities correctly");
+						ptc.setRedirect(null);
+						eof = true;
+						continue;
+					} else {
+						if(!Globals.isQuiet()) {
+							ptc.printLogMessage("Destroyed entities");
+						}
+					}
+					if(!unloadChunks()) {
+						ptc.printLogMessage("Unable to unload chunks correctly");
+						ptc.setRedirect(null);
+						eof = true;
+						continue;
+					} else {
+						if(!Globals.isQuiet()) {
+							ptc.printLogMessage("Unloaded chunks");
+						}
+					}
+					eof = true;
+					continue;
 				} else {
 					ptc.printLogMessage("Player kicked: " + reason);
 					UnitByte.writeByte(out, packetId, ptc, this);
@@ -90,6 +111,40 @@ public class DataStreamDownLinkBridge extends KillableThread {
 		}
 		ptc.interrupt();
 
+	}
+	
+	boolean destroyEntities() {
+		for( Integer entityId : linkState.entityIds ) {
+			Packet1DDestroyEntity destroyEntity = new Packet1DDestroyEntity(out, ptc, this);
+			
+			destroyEntity.setEntityId(entityId);
+			
+			if(destroyEntity.packetId == null || destroyEntity.write(out, ptc, this, true) == null) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	boolean unloadChunks() {
+		int[] buffer = new int[2];
+		for( Long key : linkState.activeChunks ) {
+			
+			buffer = DownlinkState.convertFromKey(key, buffer);
+			int x = buffer[0];
+			int z = buffer[1];
+			
+			Packet32PreChunk preChunk = new Packet32PreChunk(out, ptc, this);
+			
+			preChunk.setX(x);
+			preChunk.setZ(z);
+			preChunk.setLoad(false);
+			
+			if(preChunk.packetId == null || preChunk.write(out, ptc, this, true) == null) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }
