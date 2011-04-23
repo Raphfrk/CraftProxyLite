@@ -86,6 +86,21 @@ public class UnitMetaStream extends ProtocolUnit {
 	public void setValue(ArrayList<ProtocolUnit> value) {
 		this.value = value;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for(ProtocolUnit e : value) {
+			if(first) {
+				first = false;
+				sb.append(e.getValue());
+			} else {
+				sb.append(", " + e.getValue());
+			}
+		}
+		return "[" + sb.toString() + "]";
+	}
 
 }
 

@@ -35,7 +35,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 			}
 
 			if(packetId == (byte)0xFF) {
-				
+						
 				PacketFFKick kickPacket = new PacketFFKick((byte)0xFF);
 				
 				if(Globals.isVerbose()) {
@@ -55,6 +55,18 @@ public class DataStreamDownLinkBridge extends KillableThread {
 				if(redirect != null) {
 					ptc.printLogMessage("Redirect detected: " + redirect);
 					ptc.setRedirect(redirect);
+					
+					Packet46ServerState serverState = new Packet46ServerState(out, ptc, this);
+					
+					serverState.setState((byte)2);
+					
+					if(serverState.packetId == null || serverState.write(out, ptc, this, true) == null) {
+						ptc.printLogMessage("Unable to send rain clearing packet");
+						ptc.setRedirect(null);
+						eof = true;
+						continue;
+					}
+					
 					if(!destroyEntities()) {
 						ptc.printLogMessage("Unable to destroy entities correctly");
 						ptc.setRedirect(null);
@@ -96,7 +108,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 				Packet currentPacket = new Packet(packetId);
 
 				if(Globals.isVerbose()) {
-					ptc.printLogMessage("Transferring packet: " + packetId);
+					ptc.printLogMessage("Transferring packet: " + Integer.toHexString(packetId & 0xFF));
 				}
 
 				if(currentPacket.packetId == null || currentPacket.pass(in, out, ptc, this, true, buffer, linkState) == null) {
@@ -105,7 +117,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 					}
 					eof = true;
 					continue;
-				}
+				}			
 			}
 
 		}
@@ -118,7 +130,6 @@ public class DataStreamDownLinkBridge extends KillableThread {
 			Packet1DDestroyEntity destroyEntity = new Packet1DDestroyEntity(out, ptc, this);
 			
 			destroyEntity.setEntityId(entityId);
-			
 			if(destroyEntity.packetId == null || destroyEntity.write(out, ptc, this, true) == null) {
 				return false;
 			}

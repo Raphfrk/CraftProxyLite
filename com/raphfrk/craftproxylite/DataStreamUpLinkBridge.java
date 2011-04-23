@@ -47,7 +47,7 @@ public class DataStreamUpLinkBridge extends KillableThread {
 			Packet currentPacket = new Packet(packetId);
 			
 			if(Globals.isVerbose()) {
-				ptc.printLogMessage("Transferring packet: " + packetId);
+				ptc.printLogMessage("Transferring packet: " + Integer.toHexString(packetId & 0xFF));
 			}
 			
 			if(currentPacket.packetId == null || currentPacket.pass(in, out, ptc, this, false, buffer, null) == null) {
@@ -61,6 +61,16 @@ public class DataStreamUpLinkBridge extends KillableThread {
 			if(packetId == 0x10) {
 				Short holding = (Short)((UnitShort)(currentPacket.fields[0])).getValue();
 				ptc.setHolding(holding);
+			}
+			
+			if(currentPacket.packetId == 0x47) {
+				Packet47Weather w = new Packet47Weather(currentPacket);
+				System.out.println(w);
+				System.out.println("Weather packet");
+			}
+			
+			if(currentPacket.packetId == 0x1B) {
+				System.out.println("1b packet C->S");
 			}
 			
 		}
