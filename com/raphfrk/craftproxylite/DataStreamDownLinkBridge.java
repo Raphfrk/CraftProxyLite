@@ -112,7 +112,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 				bcb.write(packetId);
 
 				if(currentPacket.critical) {
-					ptc.printLogMessage("Previous packets (Oldest -> Newest): " + bcb);
+					ptc.printLogMessage("Downlink Previous packets (Oldest -> Newest): " + bcb);
 				}
 
 				if(Globals.isVerbose()) {

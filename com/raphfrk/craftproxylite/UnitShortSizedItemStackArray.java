@@ -6,9 +6,9 @@ import java.io.DataOutputStream;
 
 public class UnitShortSizedItemStackArray extends ProtocolUnit {
 	
-	static UnitItemStack[] validStack = new UnitItemStack[0];
+	static UnitItemStack[] validStack = new UnitItemStack[0]; // not used during processing
 
-	UnitShort lengthUnit = new UnitShort();
+	UnitShort lengthUnit;
 	
 	private Short length;
 	private UnitItemStack[] value = null;
@@ -136,6 +136,14 @@ public class UnitShortSizedItemStackArray extends ProtocolUnit {
 
 	public void setValue(UnitItemStack[] value) {
 		this.value = value;
+	}
+	
+	@Override 
+	public UnitShortSizedItemStackArray clone() {
+		UnitShortSizedItemStackArray ussisa = (UnitShortSizedItemStackArray)super.clone();
+		ussisa.value = null;
+		ussisa.lengthUnit = new UnitShort();
+		return ussisa;
 	}
 
 }

@@ -7,9 +7,9 @@ import java.net.SocketTimeoutException;
 
 public class UnitIntSizedByteArray extends ProtocolUnit {
 
-	UnitInteger lengthUnit = new UnitInteger();
+	UnitInteger lengthUnit;
 	
-	private Integer length = 0;
+	private Integer length;
 	private byte[] value = null;
 
 	void setupBuffer(byte[] buffer) {
@@ -102,7 +102,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			ptc.printLogMessage("Byte array out of allowed range (" + length + ") - breaking connection");
 			return null;
 		}
-
+		
 		length = lengthUnit.write(out, ptc, thread, serverToClient);
 		if(length == null) {
 			return null;
@@ -113,6 +113,8 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		} else if(value == null) {
 			value = buffer;
 		}
+		
+		setupBuffer(null);
 		
 		buffer = value;
 		
@@ -170,6 +172,14 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 
 	public void setValue(byte[] value) {
 		this.value = value;
+	}
+	
+	@Override 
+	public UnitIntSizedByteArray clone() {
+		UnitIntSizedByteArray uisba = (UnitIntSizedByteArray)super.clone();
+		uisba.value = null;
+		uisba.lengthUnit = new UnitInteger();
+		return uisba;
 	}
 
 }

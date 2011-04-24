@@ -51,7 +51,7 @@ public class DataStreamUpLinkBridge extends KillableThread {
 			bcb.write(packetId);
 
 			if(currentPacket.critical) {
-				ptc.printLogMessage("Previous packets (Oldest -> Newest): " + bcb);
+				ptc.printLogMessage("Uplink Previous packets (Oldest -> Newest): " + bcb);
 			}
 			
 			if(Globals.isVerbose()) {

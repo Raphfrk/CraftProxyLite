@@ -7,7 +7,7 @@ import java.net.SocketTimeoutException;
 
 public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 
-	UnitInteger lengthUnit = new UnitInteger();
+	UnitInteger lengthUnit;
 	
 	private Integer length;
 	private byte[] value = null;
@@ -178,6 +178,14 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 
 	public void setValue(byte[] value) {
 		this.value = value;
+	}
+	
+	@Override 
+	public UnitIntSizedTripleByteArray clone() {
+		UnitIntSizedTripleByteArray uisba = (UnitIntSizedTripleByteArray)super.clone();
+		uisba.value = null;
+		uisba.lengthUnit = new UnitInteger();
+		return uisba;
 	}
 
 }

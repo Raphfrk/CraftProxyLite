@@ -132,7 +132,15 @@ public class PassthroughConnection extends KillableThread {
 					connected = false;
 				} else {
 
-					clientInfo.setPlayerEntityId(serverLoginPacket.getVersion());
+					if(serverLoginPacket.packetId == 0x01) {
+						clientInfo.setPlayerEntityId(serverLoginPacket.getVersion());
+					} else if (serverLoginPacket.packetId == (byte)0xFF){
+						PacketFFKick.kickAndClose(clientSocket, this, this, ((UnitString)serverLoginPacket.fields[0]).getValue());
+						return;
+					} else {
+						PacketFFKick.kickAndClose(clientSocket, this, this, "Server sent bad packet during login");
+						return;
+					}
 
 					if(firstConnection) {
 						firstConnection = false;

@@ -7,11 +7,15 @@ import java.net.SocketTimeoutException;
 
 public class UnitItemStack extends ProtocolUnit {
 
-	private ItemStack value = new ItemStack();
+	private ItemStack value;
 	
 	@Override
 	public ItemStack read(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, DownlinkState linkState) {
 
+		if(value==null) {
+			value = new ItemStack();
+		}
+		
 		while(true) {
 			try {
 				value.blockId = in.readShort();
@@ -123,6 +127,6 @@ public class UnitItemStack extends ProtocolUnit {
 	public void setValue(ItemStack value) {
 		this.value = value;
 	}
-
+	
 }
 

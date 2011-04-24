@@ -7,7 +7,7 @@ import java.net.SocketTimeoutException;
 
 public class UnitShortSizedQuadByteArray extends ProtocolUnit {
 
-	UnitShort lengthUnit = new UnitShort();
+	UnitShort lengthUnit;
 	
 	private Short length;
 	private byte[] value = null;
@@ -180,6 +180,14 @@ public class UnitShortSizedQuadByteArray extends ProtocolUnit {
 
 	public void setValue(byte[] value) {
 		this.value = value;
+	}
+	
+	@Override 
+	public UnitShortSizedQuadByteArray clone() {
+		UnitShortSizedQuadByteArray ussqba = (UnitShortSizedQuadByteArray)super.clone();
+		ussqba.value = null;
+		ussqba.lengthUnit = new UnitShort();
+		return ussqba;
 	}
 
 }

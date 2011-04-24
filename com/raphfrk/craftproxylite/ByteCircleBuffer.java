@@ -42,7 +42,6 @@ public class ByteCircleBuffer {
 				if(cnt2>=size) {
 					cnt2=0;
 				}
-				System.out.println(cnt + " " + cnt2);
 				if(first) {
 					first = false;
 					sb.append(buffer[cnt2]);
