@@ -24,6 +24,9 @@ public class UnitString8 extends ProtocolUnit {
 				return null;
 			}
 
+			super.timeout = 0;
+			return value;
+			
 		}
 
 	}
@@ -43,6 +46,9 @@ public class UnitString8 extends ProtocolUnit {
 				return null;
 			}
 
+			super.timeout = 0;
+			return value;
+			
 		}
 	}
 
