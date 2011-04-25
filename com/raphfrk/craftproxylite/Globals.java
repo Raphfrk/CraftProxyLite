@@ -82,6 +82,16 @@ public class Globals {
 		authenticate = newAuth;
 	}
 	
+	static private boolean varyLocalhost = true;
+	
+	public synchronized static boolean varyLocalhost() {
+		return varyLocalhost;
+	}
+	
+	public synchronized static void setVaryLocalhost( boolean varyLocalhost ) {
+		Globals.varyLocalhost = varyLocalhost;
+	}
+	
 	static private int defaultPlayerId = 456789012;
 		
 	public synchronized static int getDefaultPlayerId() {

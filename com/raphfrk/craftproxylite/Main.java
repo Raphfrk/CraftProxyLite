@@ -44,6 +44,7 @@ public class Main {
 					else if( args[pos].equals("hell"))           Globals.setHell(true);
 					else if( args[pos].equals("info"))           Globals.setInfo(true);
 					else if( args[pos].equals("auth"))           Globals.setAuth(true);
+					else if( args[pos].equals("staticlocalhost"))  Globals.setVaryLocalhost(false);
 					else if( args[pos].equals("debug"))          Globals.setDebug(true);
 					else if( args[pos].equals("clientversion")){ Globals.setClientVersion(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("password"))     { Globals.setPassword(args[pos+1]); pos++;}

@@ -22,7 +22,7 @@ public class LocalSocket {
 		Socket socket = null;
 
 		try {
-			if(hostname.trim().startsWith("localhost")) {
+			if(hostname.trim().startsWith("localhost") && Globals.varyLocalhost()) {
 				String fakeLocalIP = LocalhostIPFactory.getNextIP();
 				if(!Globals.isQuiet()) {
 					ptc.printLogMessage("Connecting to: " + hostname + ":" + port + " from " + fakeLocalIP );
@@ -30,7 +30,7 @@ public class LocalSocket {
 				socket = new Socket(hostname, port, InetAddress.getByName(fakeLocalIP), 0);
 			} else {
 				socket = new Socket(hostname, port);
-			}
+			}				
 		} catch (UnknownHostException e) {
 			ptc.printLogMessage("Unknown hostname: " + hostname);
 			return null;

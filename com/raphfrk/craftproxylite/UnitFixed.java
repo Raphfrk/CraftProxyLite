@@ -9,7 +9,7 @@ import java.util.LinkedHashSet;
 
 public class UnitFixed extends ProtocolUnit {
 
-	private int length;
+	private final int length;
 	private byte[] value = null;
 
 	UnitFixed(int length) {

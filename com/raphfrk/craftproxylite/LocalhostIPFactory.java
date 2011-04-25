@@ -25,8 +25,7 @@ public class LocalhostIPFactory {
 			} while ( high < 10 || high > 200 || low < 10 || low > 200 );
 
 		}
-		return "127." + high + "." + low + ".2";
-
+		return "127.0." + high + "." + low;
 	}
 
 }
