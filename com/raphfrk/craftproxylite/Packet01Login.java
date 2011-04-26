@@ -28,8 +28,6 @@ public class Packet01Login extends Packet {
 		super(in, ptc, thread);
 	}
 	
-	private final static String proxyFakeHash = Long.toHexString(8217825568435484314L);
-	
 	static String processLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean auth, ClientInfo clientInfo) {
 		
 		Packet02Handshake CtSHandshake = new Packet02Handshake(in, ptc, thread);
@@ -186,6 +184,10 @@ public class Packet01Login extends Packet {
 			
 			if(hostnameForwarding.packetId == null || hostnameForwarding.write(out, ptc, thread, false) == null) {
 				return "Server rejected forwarding hostname packet";
+			}
+			
+			if(!Globals.isQuiet()) {
+				ptc.printLogMessage("Sent hostname as : " + clientInfo.getHostname());
 			}
 			
 		}

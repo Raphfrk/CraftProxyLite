@@ -73,9 +73,11 @@ public class PassthroughConnection extends KillableThread {
 			connected = false;
 		}
 
-		clientInfo.setHostname(ReconnectCache.get(clientInfo.getUsername()));
-		if(clientInfo.getHostname() == null || clientInfo.getHostname().equals("")) {
-			clientInfo.setHostname(defaultHostname);
+		if(clientInfo.getHostname() == null) {
+			clientInfo.setHostname(ReconnectCache.get(clientInfo.getUsername()));
+			if(clientInfo.getHostname() == null || clientInfo.getHostname().equals("")) {
+				clientInfo.setHostname(defaultHostname);
+			}
 		}
 
 		boolean firstConnection = true;
