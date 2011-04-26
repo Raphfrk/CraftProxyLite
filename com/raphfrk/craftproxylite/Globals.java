@@ -22,6 +22,15 @@ public class Globals {
 		Globals.localAlias = localAlias;
 	}
 	
+	static Long seed = null;
+	public synchronized static Long getSeed() {
+		return seed;
+	}
+	
+	public synchronized static void setSeed(Long seed) {
+		Globals.seed = seed;
+	}
+	
 	static private boolean quiet = false;
 
 	public synchronized static boolean isQuiet() {

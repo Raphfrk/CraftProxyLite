@@ -175,7 +175,12 @@ public class PassthroughConnection extends KillableThread {
 							}
 							clientLoginPacket.setDimension(Globals.getDimension());
 						}
-						clientLoginPacket.setMapSeed(serverLoginPacket.getMapSeed());
+						
+						if(Globals.getSeed() != null) {
+							clientLoginPacket.setMapSeed(Globals.getSeed());
+						} else {
+							clientLoginPacket.setMapSeed(serverLoginPacket.getMapSeed());
+						}
 						clientLoginPacket.setUsername(serverLoginPacket.getUsername());
 						if(clientLoginPacket.packetId == null || clientLoginPacket.write(clientSocket.out, this, this, true) == null) {
 							printLogMessage("Failed to write login packet to client");
