@@ -1,7 +1,5 @@
 package com.raphfrk.craftproxylite;
 
-import java.util.Arrays;
-
 public class RedirectManager {
 	
 	public static Integer getPort(String fullHostname) {

@@ -63,17 +63,23 @@ public class PassthroughConnection extends KillableThread {
 
 		if(kickMessage != null) {
 			printLogMessage(kickMessage);
-			PacketFFKick.kick(clientSocket.out, this, this, kickMessage);
+			PacketFFKick.kickAndClose(clientSocket, this, this, kickMessage);
 			connected = false;
+			return;
 		}
 		
-		if(BanList.banned(clientInfo.getUsername())) {
-			printLogMessage(clientInfo.getUsername() + " is banned");
-			PacketFFKick.kick(clientSocket.out, this, this, "Your account name is on the proxy ban list");
+		if(clientInfo.getUsername() == null || BanList.banned(clientInfo.getUsername())) {
+			if(clientInfo.getUsername() != null) {
+				printLogMessage(clientInfo.getUsername() + " is banned");
+			} else {
+				printLogMessage("login attempt by unknown username");
+			}
+			PacketFFKick.kickAndClose(clientSocket, this, this, "Your account name is on the proxy ban list");
 			connected = false;
+			return;
 		}
 
-		if(clientInfo.getHostname() == null) {
+		if(connected && clientInfo.getHostname() == null) {
 			clientInfo.setHostname(ReconnectCache.get(clientInfo.getUsername()));
 			if(clientInfo.getHostname() == null || clientInfo.getHostname().equals("")) {
 				clientInfo.setHostname(defaultHostname);
@@ -259,7 +265,7 @@ public class PassthroughConnection extends KillableThread {
 	}
 
 	synchronized void printLogMessage(String message) {
-		String username = clientInfo.getUsername();
+		String username = (clientInfo==null)?null:(clientInfo.getUsername());
 		if(username == null) {
 			Logging.log("[" + shortTime.format(new Date()) + "] " + clientInfo.getIP() + "/" + clientInfo.getPort() + ": " + message);
 		} else {

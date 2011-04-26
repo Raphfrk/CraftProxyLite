@@ -84,7 +84,7 @@ public class Packet01Login extends Packet {
 			
 			String toHash = hashString + password;
 			
-			String replyIdeal = sha1Hash(toHash).substring(0,24);
+			String replyIdeal = sha1Hash(toHash).substring(0,16);
 			
 			String reply = hashReply.getUsername();
 			
@@ -119,7 +119,11 @@ public class Packet01Login extends Packet {
 	
 	static String serverLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean loginToProxy, ClientInfo clientInfo) {
 
-		ptc.printLogMessage("Attempting to log into backend server");
+		if(loginToProxy) {
+			ptc.printLogMessage("Attempting to log into next proxy");
+		} else {
+			ptc.printLogMessage("Attempting to log into backend server");
+		}
 		
 		Packet02Handshake CtSHandshake = new Packet02Handshake(out, ptc, thread);
 		
@@ -168,7 +172,7 @@ public class Packet01Login extends Packet {
 			
 			String toHash = hashString + password;
 			
-			String reply = sha1Hash(toHash).substring(0,24);
+			String reply = sha1Hash(toHash).substring(0,16);
 			
 			Packet02Handshake hashReply = new Packet02Handshake(out, ptc, thread);
 			
