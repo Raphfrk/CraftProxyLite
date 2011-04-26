@@ -7,8 +7,11 @@ public class RedirectManager {
 	public static Integer getPort(String fullHostname) {
 		
 		int pos = fullHostname.lastIndexOf(":");
+		int pos2 = fullHostname.lastIndexOf(",");
 		
-		if(pos == -1) {
+		int lastMarker = Math.max(pos, pos2);
+		
+		if(lastMarker == -1) {
 			try {
 				return Integer.parseInt(fullHostname);
 			} catch (NumberFormatException nfe) {
@@ -16,7 +19,7 @@ public class RedirectManager {
 			}
 		} else {
 			try {
-				return Integer.parseInt(fullHostname.substring(pos+1));
+				return Integer.parseInt(fullHostname.substring(lastMarker+1));
 			} catch (NumberFormatException nfe) {
 				return null;
 			}
