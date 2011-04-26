@@ -2,7 +2,7 @@ package com.raphfrk.craftproxylite;
 
 public class Globals {
 	
-	static private String password = "null";
+	static private String password = null;
 	
 	public synchronized static String getPassword() {
 		return password;
@@ -98,6 +98,16 @@ public class Globals {
 		
 		return defaultPlayerId;
 		
+	}
+	
+	static private int fakeVersion = 111111;
+	
+	public synchronized static int getFakeVersion() {
+		return fakeVersion;
+	}
+	
+	public synchronized static void setFakeVersion( int newFakeVersion ) {
+		fakeVersion = newFakeVersion;
 	}
 	
 	static private int clientVersion = 11;

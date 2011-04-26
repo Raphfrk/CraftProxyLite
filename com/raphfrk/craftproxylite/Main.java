@@ -21,11 +21,10 @@ public class Main {
 
 		Logging.log( "Starting Craftproxy-lite version " +  VersionNumbering.version );
 
-		int listenPort;
-		int defaultPort;
-		String password = "";
+		String listenHostname = null;
+		String defaultHostname = null;
 
-		String usageString = "craftproxy <port to listen to> <default port> [hell] [quiet] [reconnectfile path_to_file] [verbose] [info] [auth] [clientversion num] [delay num] [local_alias alias] [debug] [banned banfile]";
+		String usageString = "craftproxy <listen hostname>:<listen port> <default hostname>:<default-port> [hell] [quiet] [reconnectfile path_to_file] [verbose] [info] [auth] [clientversion num] [delay num] [local_alias alias] [debug] [banned banfile]";
 
 		if( args.length < 2 ) {
 			Logging.log( "Usage: " + usageString );
@@ -36,30 +35,24 @@ public class Main {
 
 		} else {
 			try {
-				listenPort = Integer.parseInt(args[0]);
-				defaultPort = Integer.parseInt(args[1]);
+				listenHostname = args[0];
+				defaultHostname = args[1];
 				for( int pos=2;pos<args.length;pos++) {
 
 					if( args[pos].equals("verbose"))        Globals.setVerbose(true);
-					else if( args[pos].equals("hell"))           Globals.setHell(true);
 					else if( args[pos].equals("info"))           Globals.setInfo(true);
 					else if( args[pos].equals("auth"))           Globals.setAuth(true);
+					else if( args[pos].equals("auth_off"))       Globals.setAuth(false);
 					else if( args[pos].equals("staticlocalhost"))  Globals.setVaryLocalhost(false);
 					else if( args[pos].equals("debug"))          Globals.setDebug(true);
 					else if( args[pos].equals("clientversion")){ Globals.setClientVersion(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("password"))     { Globals.setPassword(args[pos+1]); pos++;}
-					else if( args[pos].equals("local_alias"))  { Globals.setLocalAlias(args[pos+1]); pos++;}
 					else if( args[pos].equals("quiet"))          Globals.setQuiet(true);
 					else if( args[pos].equals("reconnectfile")){ ReconnectCache.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("banned"))       { BanList.init(args[pos+1]); pos++;}
-					else if( args[pos].equals("limiter"))       { Globals.setLimiter(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("dimension"))       { Globals.setDimension(Byte.parseByte(args[pos+1])); pos++;}
-					else if( args[pos].equals("fairness"))      { Globals.setFairness(Integer.parseInt(args[pos+1])); pos++;}
-					else if( args[pos].equals("delay"))		   { Globals.setDelay(Integer.parseInt(args[pos+1])); pos++;}
-					else if( args[pos].equals("window"))		   { Globals.setWindow(Long.parseLong(args[pos+1])); pos++;}
-					else if( args[pos].equals("threshold"))		   { Globals.setThreshold(Long.parseLong(args[pos+1])); pos++;}
 					else if( args[pos].equals("log"))              { Logging.setFilename(args[pos+1]) ; pos++;}
-					else                                         password = new String(args[pos]); // game password - not used
+					else                                        {System.out.println("Unknown field: " + args[pos]); System.exit(0);}
 
 				}
 
@@ -89,7 +82,7 @@ public class Main {
 
 		Logging.log( "Use \"end\" to stop the server");
 
-		ProxyListener server = new ProxyListener( listenPort, defaultPort, password );
+		ProxyListener server = new ProxyListener( listenHostname, defaultHostname );
 
 		server.start();
 
@@ -131,7 +124,7 @@ public class Main {
 		} catch (InterruptedException e) {
 			Logging.log("Server interrupted while closing");
 		}
-		
+		ReconnectCache.save();
 		Logging.flush();
 
 	}

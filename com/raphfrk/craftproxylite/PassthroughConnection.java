@@ -9,9 +9,6 @@ import java.util.Date;
 public class PassthroughConnection extends KillableThread {
 
 	private final Socket socketToClient;
-	private final int defaultPort;
-	private final String password;
-	private final int listenPort;
 	protected final ClientInfo clientInfo;
 	
 	private Object holdingSync = new Object(); // not really required
@@ -19,10 +16,11 @@ public class PassthroughConnection extends KillableThread {
 	
 	DateFormat shortTime = DateFormat.getTimeInstance(DateFormat.MEDIUM);
 
-	private boolean forward = false;
-
 	private Object enabledSync = new Object();
 	private boolean enabled = true;
+	
+	private final String listenHostname;
+	private final String defaultHostname;
 
 	private KillableThread serverToClient = null;
 	private KillableThread clientToServer = null;
@@ -38,19 +36,21 @@ public class PassthroughConnection extends KillableThread {
 	private Object redirectSync = new Object();
 	private String redirect = null;
 
-	PassthroughConnection(Socket socketToClient, int defaultPort, String password , int listenPort) {
+	PassthroughConnection(Socket socketToClient, String defaultHostname, String listenHostname) {
 		this.socketToClient = socketToClient;
-		this.defaultPort = defaultPort;
-		this.password = password;
-		this.listenPort = listenPort;
 		this.clientInfo = new ClientInfo();
 		this.clientInfo.setIP(socketToClient.getInetAddress().getHostAddress());
 		this.clientInfo.setPort(socketToClient.getPort());
+		this.defaultHostname = defaultHostname;
+		this.listenHostname = listenHostname;
 	}
 
 	public void run() {
 
 		boolean connected = true;
+		
+		clientInfo.setForward(false);
+		clientInfo.setHostname(null);
 
 		LocalSocket clientSocket = new LocalSocket(socketToClient, this);
 
@@ -59,7 +59,7 @@ public class PassthroughConnection extends KillableThread {
 			return;
 		}
 
-		String kickMessage = Packet01Login.processLogin(clientSocket.in, clientSocket.out, this, this, Globals.isAuth());
+		String kickMessage = Packet01Login.processLogin(clientSocket.in, clientSocket.out, this, this, Globals.isAuth(), clientInfo);
 
 		if(kickMessage != null) {
 			printLogMessage(kickMessage);
@@ -73,9 +73,10 @@ public class PassthroughConnection extends KillableThread {
 			connected = false;
 		}
 
-		String hostname = ReconnectCache.get(clientInfo.getUsername());
-		int portnum = ReconnectCache.getPort(hostname, defaultPort);
-		hostname = ReconnectCache.getHost(hostname, "localhost");
+		clientInfo.setHostname(ReconnectCache.get(clientInfo.getUsername()));
+		if(clientInfo.getHostname() == null || clientInfo.getHostname().equals("")) {
+			clientInfo.setHostname(defaultHostname);
+		}
 
 		boolean firstConnection = true;
 
@@ -85,24 +86,22 @@ public class PassthroughConnection extends KillableThread {
 			setRedirect(null);
 			
 			if(redirectLocal != null) {
-				String[] split = redirectLocal.split(":");
-				if(split.length != 2) {
-					printLogMessage("Error with redirect string");
-					connected = false;
-				} else {
-					hostname = split[0];
-					try {
-						portnum = Integer.parseInt(split[1]);
-					} catch (NumberFormatException nfe) {
-						printLogMessage("Error with processing port number");
-						connected = false;
-					}
-				}
+				clientInfo.setHostname(redirectLocal);
 			}
 			
-			printLogMessage("Connecting to: " + hostname + ":" + portnum);
-
-			Socket serverBasicSocket = LocalSocket.openSocket(hostname, portnum, this);
+			printLogMessage("Connecting to: " + clientInfo.getHostname());
+			
+			String nextHostname = RedirectManager.getNextHostname(listenHostname, clientInfo.getHostname());
+			Integer nextPortnum = RedirectManager.getNextPort(listenHostname, clientInfo.getHostname());
+			
+			if(nextHostname == null || nextPortnum == null) {
+				printLogMessage("Unable to parse hostname: " + clientInfo.getHostname());
+				PacketFFKick.kick(clientSocket.out, this, this, "Unable to parse hostname: " + clientInfo.getHostname());
+				LocalSocket.closeSocket(clientSocket.socket, this);
+				return;
+			}
+			
+			Socket serverBasicSocket = LocalSocket.openSocket(nextHostname, nextPortnum, this);
 			if(serverBasicSocket == null) {
 				printLogMessage("Unable to open connection to backend server");
 				PacketFFKick.kick(clientSocket.out, this, this, "Unable to connect to backend server");
@@ -115,16 +114,23 @@ public class PassthroughConnection extends KillableThread {
 				PacketFFKick.kickAndClose(clientSocket, this, this, "Unable to connect to backend server");
 				return;
 			}
-
-			kickMessage = Packet01Login.serverLogin(serverSocket.in, serverSocket.out, this, this);
+			
+			Boolean proxyLogin = RedirectManager.isNextProxy(listenHostname, clientInfo.getHostname());
+			
+			if(proxyLogin == null) {
+				printLogMessage("Unable to determine if next login is a proxy");
+				PacketFFKick.kickAndClose(clientSocket, this, this, "Unable to determine if next login is a proxy");
+				return;
+			}
+			
+			kickMessage = Packet01Login.serverLogin(serverSocket.in, serverSocket.out, this, this, proxyLogin, clientInfo);
 			if(kickMessage != null) {
 				printLogMessage(kickMessage);
 				PacketFFKick.kick(clientSocket.out, this, this, kickMessage);
 				connected = false;
 			}
 			if(connected) {
-				ReconnectCache.store(clientInfo.getUsername(), hostname, portnum);
-
+				
 				Packet01Login serverLoginPacket = new Packet01Login(serverSocket.in, this, this);
 
 				if(serverLoginPacket.packetId == null || serverLoginPacket.read(serverSocket.in, this, this, true, null) == null) {
@@ -145,7 +151,7 @@ public class PassthroughConnection extends KillableThread {
 					if(firstConnection) {
 						firstConnection = false;
 						Packet01Login clientLoginPacket = new Packet01Login(clientSocket.out, this, this);
-						if(!forward) {
+						if(!clientInfo.getForward()) {
 							clientLoginPacket.setVersion(Globals.getDefaultPlayerId());
 						} else {
 							clientLoginPacket.setVersion(serverLoginPacket.getVersion());
@@ -183,7 +189,18 @@ public class PassthroughConnection extends KillableThread {
 					}
 
 					if(connected) {
-						if(forward) {
+						
+						if(!Globals.isQuiet()) {
+							if(clientInfo.getForward()) {
+								printLogMessage("Connection is in forwarding mode");
+							} else {
+								printLogMessage("Connection is in proxy/processing mode");
+							}
+						}
+						
+						ReconnectCache.store(clientInfo.getUsername(), clientInfo.getHostname() );
+						
+						if(clientInfo.getForward()) {
 							serverToClient = new DataStreamBridge(serverSocket.in, clientSocket.out, this);
 							clientToServer = new DataStreamBridge(clientSocket.in, serverSocket.out, this);
 							connected = false;

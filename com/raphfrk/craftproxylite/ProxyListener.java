@@ -14,18 +14,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProxyListener extends KillableThread {
 	
 	private final int port;
-	private final int defaultPort;
-	private final String password;
-	
-	private Object enableSync = new Object();
-	private boolean enabled = true;
+	private final String listenHostname;
+	private final String defaultHostname;
 	
 	LinkedList<PassthroughConnection> connections = new LinkedList<PassthroughConnection>();
 	
-	ProxyListener(int port, int defaultPort, String password) {
-		this.port = port;
-		this.defaultPort = defaultPort;
-		this.password = password;
+	ProxyListener(String listenHostname, String defaultHostname) {
+		this.port = RedirectManager.getPort(listenHostname);
+		this.listenHostname = listenHostname;
+		this.defaultHostname = defaultHostname;
 	}
 	
 	ConcurrentHashMap<String,Long> lastLogin = new ConcurrentHashMap<String,Long>();
@@ -113,7 +110,7 @@ public class ProxyListener extends KillableThread {
 					Logging.log("Exception when closing connection");
 				}
 			} else {
-				PassthroughConnection ptc = new PassthroughConnection(socket , defaultPort, password , port );
+				PassthroughConnection ptc = new PassthroughConnection(socket, defaultHostname,  listenHostname);
 				ptc.start();
 				addPassthroughConnection(ptc);
 			}

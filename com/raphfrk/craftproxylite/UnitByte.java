@@ -19,7 +19,7 @@ public class UnitByte extends ProtocolUnit {
 		UnitByte temp = new UnitByte();
 		do {
 			temp.read(in, ptc, thread, false, null);
-		} while(temp.getValue() == 0 && temp.getValue() != null);
+		} while(temp.getValue() != null && temp.getValue() == 0);
 		return temp.getValue();
 	}
 	

@@ -15,11 +15,17 @@ public class PacketFFKick extends Packet {
 		super(in, ptc, thread);
 	}
 	
+	PacketFFKick(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+		super(out, ptc, thread, defaultPacketId);
+	}
+	
 	String getMessage() {
+		super.setupFields();
 		return (String)fields[0].getValue();
 	}
 
 	void setMessage(String value) {
+		super.setupFields();
 		((UnitString)fields[0]).setValue(value);
 	}
 	
@@ -79,6 +85,10 @@ public class PacketFFKick extends Packet {
 					portNum = 25565;
 				} catch (Exception e) { portNum = -1; };
 			}
+		}
+		
+		if(reason.startsWith("[Serverport] : ") && reason.indexOf(",")>=0) {
+			return reason.substring(15).trim();
 		}
 
 		if( portNum != -1 ) {

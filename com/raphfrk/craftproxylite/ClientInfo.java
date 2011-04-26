@@ -6,6 +6,16 @@ public class ClientInfo {
 	private String username;
 	private String ip;
 	private int port;
+	private boolean forward = false;
+	private String hostname;
+	
+	public void setHostname(String hostname) {
+		this.hostname = hostname;
+	}
+	
+	public String getHostname() {
+		return hostname;
+	}
 	
 	public void setUsername(String username) {
 		this.username = username;
@@ -29,6 +39,14 @@ public class ClientInfo {
 	
 	public int getPort() {
 		return port;
+	}
+	
+	public void setForward(boolean forward) {
+		this.forward = forward;
+	}
+	
+	public boolean getForward() {
+		return forward;
 	}
 	
 	public void setPlayerEntityId(int playerEntityId) {

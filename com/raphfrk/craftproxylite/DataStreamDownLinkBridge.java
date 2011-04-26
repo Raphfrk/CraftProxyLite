@@ -92,7 +92,6 @@ public class DataStreamDownLinkBridge extends KillableThread {
 					eof = true;
 					continue;
 				} else {
-					ptc.printLogMessage("Player kicked: " + reason);
 					UnitByte.writeByte(out, packetId, ptc, this);
 					kickPacket.write(out, ptc, this, true);
 				}

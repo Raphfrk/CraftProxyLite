@@ -13,9 +13,9 @@ public class ReconnectCache {
 
 	}
 
-	static synchronized void store(String player, String hostname, int port) {
+	static synchronized void store(String player, String hostname) {
 		if(pf==null) return;
-		pf.setString(player,hostname + ":" + port);
+		pf.setString(player,hostname);
 
 	}
 	
@@ -38,36 +38,5 @@ public class ReconnectCache {
 		pf.removeRecord(player);
 	}
 
-	static String getHost(String combined, String def) {
-
-		if(pf==null) return def;
-		
-		String[] split = combined.split(":");
-
-		if(combined.trim().equals("") || split.length<2 ) {
-			return def;
-		} else {
-			return split[0];
-		}
-
-	}
-
-	static int getPort(String combined, int def) {
-		
-		if(pf==null) return def;
-
-		String[] split = combined.split(":");
-
-		if(combined.trim().equals("") || split.length<2 ) {
-			return def;
-		} else {
-			try {
-				return Integer.parseInt(split[1]);
-			} catch (NumberFormatException nfe) {
-				return def;
-			}
-		}
-
-	}
 
 }

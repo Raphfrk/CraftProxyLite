@@ -5,9 +5,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 public class Packet01Login extends Packet {
@@ -26,7 +28,9 @@ public class Packet01Login extends Packet {
 		super(in, ptc, thread);
 	}
 	
-	static String processLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean auth) {
+	private final static String proxyFakeHash = Long.toHexString(8217825568435484314L);
+	
+	static String processLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean auth, ClientInfo clientInfo) {
 		
 		Packet02Handshake CtSHandshake = new Packet02Handshake(in, ptc, thread);
 		
@@ -61,11 +65,51 @@ public class Packet01Login extends Packet {
 			return "Client sent bad login packet";
 		}
 		
-		if(clientLogin.getVersion() != Globals.getClientVersion()) {
+		String password = Globals.getPassword();
+		
+		boolean canSkipAuth = false;
+		
+		if(password != null && clientLogin.getVersion() == Globals.getFakeVersion()) {
+			
+			PacketFFKick fakeKickPacket = new PacketFFKick(out, ptc, thread);
+			
+			fakeKickPacket.setMessage("Version mismatch between client and server");
+
+			if(fakeKickPacket.packetId == null || fakeKickPacket.write(out, ptc, thread, false) == null ) {
+				return "Client rejected fake kick packet";
+			}
+			
+			Packet02Handshake hashReply = new Packet02Handshake(in, ptc, thread);
+			if(hashReply.packetId == null || hashReply.read(in, ptc, thread, true, null) == null) {
+				return "Client sent bad hash reply packet";
+			}
+			
+			String toHash = hashString + password;
+			
+			String replyIdeal = sha1Hash(toHash).substring(0,24);
+			
+			String reply = hashReply.getUsername();
+			
+			if(!reply.equals(replyIdeal)) {
+				return "Password not accepted for proxy to proxy link";
+			}
+			
+			Packet02Handshake hostnameForward = new Packet02Handshake(in, ptc, thread);
+			if(hostnameForward.packetId == null || hostnameForward.read(in, ptc, thread, true, null) == null) {
+				return "Client sent bad hostname forwarding packet";
+			}
+			
+			clientInfo.setForward(true);
+			clientInfo.setHostname(hostnameForward.getUsername());
+			
+			canSkipAuth = true;
+			
+			
+		} else if(clientLogin.getVersion() != Globals.getClientVersion()) {
 			return "Client attempted to login with incorrect version";
 		}
 		
-		if(auth) {
+		if(auth && !canSkipAuth) {
 			if(!authenticate(ptc.clientInfo.getUsername(), hashString,  ptc)) {
 				return "Proxy is unable to authenticate";
 			} 
@@ -75,7 +119,7 @@ public class Packet01Login extends Packet {
 		
 	}
 	
-	static String serverLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
+	static String serverLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean loginToProxy, ClientInfo clientInfo) {
 
 		ptc.printLogMessage("Attempting to log into backend server");
 		
@@ -95,13 +139,55 @@ public class Packet01Login extends Packet {
 		
 		Packet01Login clientLogin = new Packet01Login(out, ptc, thread);
 		
-		clientLogin.setVersion(Globals.getClientVersion());
+		if(!loginToProxy) {
+			clientLogin.setVersion(Globals.getClientVersion());
+		} else {
+			clientLogin.setVersion(Globals.getFakeVersion());
+		}
 		clientLogin.setUsername(ptc.clientInfo.getUsername());
 		clientLogin.setDimension((byte)0);
 		clientLogin.setMapSeed(0);
 		
 		if(clientLogin.packetId == null || clientLogin.write(out, ptc, thread, false) == null) {
 			return "Server rejected client login packet";
+		}
+		
+		if(loginToProxy) {
+
+			PacketFFKick fakeKick = new PacketFFKick(in, ptc, thread);
+			
+			if(fakeKick.packetId == null || fakeKick.read(in, ptc, thread, true, null) == null) {
+				return "Server sent bad fake kick packet";
+			}
+			
+			if(!fakeKick.getMessage().equals("Version mismatch between client and server")) {
+				return "Last server in globalhost list should be the actual server";
+			}
+			
+			String hashString = StCHandshake.getUsername();
+			
+			String password = Globals.getPassword();
+			
+			String toHash = hashString + password;
+			
+			String reply = sha1Hash(toHash).substring(0,24);
+			
+			Packet02Handshake hashReply = new Packet02Handshake(out, ptc, thread);
+			
+			hashReply.setUsername(reply);
+			
+			if(hashReply.packetId == null || hashReply.write(out, ptc, thread, false) == null) {
+				return "Server rejected hash reply packet";
+			}
+			
+			Packet02Handshake hostnameForwarding = new Packet02Handshake(out, ptc, thread);
+			
+			hostnameForwarding.setUsername(clientInfo.getHostname());
+			
+			if(hostnameForwarding.packetId == null || hostnameForwarding.write(out, ptc, thread, false) == null) {
+				return "Server rejected forwarding hostname packet";
+			}
+			
 		}
 		
 		return null;
@@ -117,6 +203,24 @@ public class Packet01Login extends Packet {
 		}
 
 		return Long.toHexString(hashLong);
+	}
+	
+	static String sha1Hash( String inputString ) {
+
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA");
+			md.reset();
+
+			md.update(inputString.getBytes("utf-8"));
+
+			BigInteger bigInt = new BigInteger( md.digest() );
+
+			return bigInt.toString( 16 ) ;
+
+		} catch (Exception ioe) {
+			return "hash error";
+		}
+
 	}
 	
 	static boolean authenticate( String username , String hashString, PassthroughConnection ptc )  {
