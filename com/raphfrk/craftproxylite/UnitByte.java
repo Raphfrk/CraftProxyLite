@@ -54,6 +54,8 @@ public class UnitByte extends ProtocolUnit {
 	@Override
 	public Byte write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		incrementCounter(serverToClient, 1, ptc);
+
 		while(true) {
 			try {
 				out.writeByte(value);

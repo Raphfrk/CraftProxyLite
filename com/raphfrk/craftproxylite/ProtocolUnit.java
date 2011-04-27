@@ -51,4 +51,10 @@ public abstract class ProtocolUnit implements Cloneable {
 		}
 	}
 	
+	void incrementCounter(boolean serverToClient, int size, PassthroughConnection ptc) {
+		if(serverToClient) {
+			ptc.packetCounter += size;
+		}
+	}
+	
 }

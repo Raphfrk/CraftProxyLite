@@ -39,7 +39,7 @@ public class RedirectManager {
 			hostname = hostname.substring(listenHostname.length());
 			hostname = hostname.trim();
 		} else {
-			return null;
+			return hostname;
 		}
 		
 		if(hostname.startsWith(",")) {

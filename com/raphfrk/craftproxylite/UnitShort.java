@@ -35,6 +35,8 @@ public class UnitShort extends ProtocolUnit {
 		@Override
 		public Short write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+			incrementCounter(serverToClient, 2, ptc);
+			
 			while(true) {
 				try {
 					out.writeShort(value);

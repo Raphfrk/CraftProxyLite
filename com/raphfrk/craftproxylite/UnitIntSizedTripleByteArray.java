@@ -77,6 +77,8 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 			return null;
 		}
 		
+		incrementCounter(serverToClient, length, ptc);
+		
 		while(true) {
 			try {
 				out.write(value, 0, length);
@@ -128,6 +130,8 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 		int pos = 0;
 		
 		int bufLength = buffer.length;
+		
+		incrementCounter(serverToClient, length, ptc);
 
 		while(pos < length) {
 			int read;

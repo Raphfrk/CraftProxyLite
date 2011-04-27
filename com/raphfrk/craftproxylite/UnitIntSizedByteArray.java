@@ -70,6 +70,8 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			return null;
 		}
 		
+		incrementCounter(serverToClient, length, ptc);
+		
 		while(true) {
 			try {
 				out.write(value, 0, length);
@@ -121,6 +123,8 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		int pos = 0;
 		
 		int bufLength = buffer.length;
+		
+		incrementCounter(serverToClient, length, ptc);
 		
 		while(pos < length) {
 			int read;

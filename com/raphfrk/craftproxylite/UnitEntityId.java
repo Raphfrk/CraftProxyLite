@@ -58,6 +58,8 @@ public class UnitEntityId extends ProtocolUnit {
 	@Override
 	public Integer write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		incrementCounter(serverToClient, 4, ptc);
+		
 		while(true) {
 			try {
 				out.writeInt(value);

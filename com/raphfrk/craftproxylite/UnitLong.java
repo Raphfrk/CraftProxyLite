@@ -35,6 +35,8 @@ public class UnitLong extends ProtocolUnit {
 	@Override
 	public Long write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		incrementCounter(serverToClient, 8, ptc);
+		
 		while(true) {
 			try {
 				out.writeLong(value);

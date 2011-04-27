@@ -34,7 +34,7 @@ public class UnitBoolean extends ProtocolUnit {
 		
 		@Override
 		public Boolean write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
-
+			incrementCounter(serverToClient, 1, ptc);
 			while(true) {
 				try {
 					out.writeBoolean(value);

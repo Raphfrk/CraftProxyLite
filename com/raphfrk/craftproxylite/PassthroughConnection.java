@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PassthroughConnection extends KillableThread {
 
@@ -35,6 +36,10 @@ public class PassthroughConnection extends KillableThread {
 	
 	private Object redirectSync = new Object();
 	private String redirect = null;
+	
+	public int packetCounter = 0;
+	public int packetCounters[] = new int[256];
+	public int packetLastCounters[] = new int[256];
 
 	PassthroughConnection(Socket socketToClient, String defaultHostname, String listenHostname) {
 		this.socketToClient = socketToClient;
@@ -44,9 +49,10 @@ public class PassthroughConnection extends KillableThread {
 		this.defaultHostname = defaultHostname;
 		this.listenHostname = listenHostname;
 	}
+	
 
 	public void run() {
-
+		
 		boolean connected = true;
 		
 		clientInfo.setForward(false);
@@ -87,7 +93,7 @@ public class PassthroughConnection extends KillableThread {
 		}
 
 		boolean firstConnection = true;
-
+		
 		while(connected && !killed()) {
 			
 			String redirectLocal = getRedirect();
@@ -335,7 +341,5 @@ public class PassthroughConnection extends KillableThread {
 			return(holding);
 		}
 	}
-	
-	
 
 }

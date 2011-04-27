@@ -34,6 +34,8 @@ public class UnitFloat extends ProtocolUnit {
 	@Override
 	public Float write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		incrementCounter(serverToClient, 4, ptc);
+		
 		while(true) {
 			try {
 				out.writeFloat(value);

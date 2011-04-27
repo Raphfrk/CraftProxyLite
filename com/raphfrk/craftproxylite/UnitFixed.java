@@ -59,6 +59,8 @@ public class UnitFixed extends ProtocolUnit {
 	@Override
 	public byte[] write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		incrementCounter(serverToClient, length, ptc);
+		
 		while(true) {
 			try {
 				out.write(value, 0, length);

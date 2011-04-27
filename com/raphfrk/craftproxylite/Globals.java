@@ -41,6 +41,16 @@ public class Globals {
 		quiet = newQuiet;
 	}
 	
+	static private long monitor = -1;
+
+	public synchronized static long monitorBandwidth() {
+		return monitor;
+	}
+	
+	public synchronized static void setMonitor( long newMonitor ) {
+		monitor = newMonitor;
+	}
+	
 	static private boolean debug = false;
 
 	public synchronized static boolean isDebug() {

@@ -35,6 +35,8 @@ public class UnitCharacter extends ProtocolUnit {
 	@Override
 	public Character write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		incrementCounter(serverToClient, 2, ptc);
+		
 		while(true) {
 			try {
 				out.writeChar(value);

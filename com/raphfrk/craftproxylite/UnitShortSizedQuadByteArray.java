@@ -38,7 +38,7 @@ public class UnitShortSizedQuadByteArray extends ProtocolUnit {
 		}
 		
 		setupBuffer(null);
-
+		
 		int pos = 0;
 
 		while(pos < length) {
@@ -80,6 +80,8 @@ public class UnitShortSizedQuadByteArray extends ProtocolUnit {
 			ptc.printLogMessage("Error writing quad byte array, breaking connection");
 			return null;
 		}
+		
+		incrementCounter(serverToClient, length, ptc);
 		
 		while(true) {
 			try {
@@ -130,6 +132,8 @@ public class UnitShortSizedQuadByteArray extends ProtocolUnit {
 		int pos = 0;
 		
 		int bufLength = buffer.length;
+		
+		incrementCounter(serverToClient, length, ptc);
 
 		while(pos < length) {
 			int read;

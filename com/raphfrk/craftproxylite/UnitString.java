@@ -81,6 +81,8 @@ public class UnitString extends ProtocolUnit {
 			super.timeout = 0;
 			break;
 		}
+		
+		incrementCounter(serverToClient, value.length()*2, ptc);
 
 		while(true) {
 			try {

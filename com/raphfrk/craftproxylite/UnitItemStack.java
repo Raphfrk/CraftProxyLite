@@ -76,9 +76,13 @@ public class UnitItemStack extends ProtocolUnit {
 				return null;
 			}
 			
+			incrementCounter(serverToClient, 2, ptc);
+			
 			if(value.blockId < 0) {
 				return value;
 			}
+			
+			incrementCounter(serverToClient, 3, ptc);
 			
 			try {
 				out.writeByte(value.amount);

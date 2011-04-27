@@ -15,6 +15,8 @@ public class DataStreamDownLinkBridge extends KillableThread {
 		this.out = out;
 		this.ptc = ptc;
 	}
+	
+	long period = 0;
 
 	public void run() {
 		
@@ -23,8 +25,23 @@ public class DataStreamDownLinkBridge extends KillableThread {
 		boolean eof = false;
 
 		byte[] buffer = new byte[131072]; // buffer used for passthrough temp storage
+		
+		resetCounters();
+		
+		long startTime = System.currentTimeMillis();
+		long lastTime = startTime;
+		
+		period = Globals.monitorBandwidth();
+		boolean monitor = period > 0;
 
 		while(!eof && !super.killed()) {
+			
+			long currentTime = System.currentTimeMillis();
+			
+			if(monitor && currentTime > lastTime + period) {
+				lastTime = currentTime;
+				printBandwidth(ptc, currentTime - startTime);
+			}
 
 			Byte packetId = UnitByte.getByte(in, ptc, this);
 
@@ -164,5 +181,67 @@ public class DataStreamDownLinkBridge extends KillableThread {
 		}
 		return true;
 	}
+	
+	private void clearCounters() {
+		for(int cnt=0;cnt<256;cnt++) {
+			ptc.packetLastCounters[cnt] = ptc.packetCounters[cnt];
+		}
+	}
+	
+	private void resetCounters() {
+		for(int cnt=0;cnt<256;cnt++) {
+			ptc.packetCounters[cnt] = 0;
+		}
+		clearCounters();
+	}
+	
+	void printBandwidth(PassthroughConnection ptc, long time) {
+		int total = 0;
+		for(int cnt=0;cnt<256;cnt++) {
+			total += ptc.packetCounters[cnt] - ptc.packetLastCounters[cnt];
+		}
+		
+		ptc.printLogMessage("");
+		ptc.printLogMessage("Bandwidth Stats - last " + (period/1000) + " seconds" );
+		for(int cnt=0;cnt<256;cnt++) {
+			int usage = ptc.packetCounters[cnt] - ptc.packetLastCounters[cnt];
+			if(usage > total/100) {
+				printBandwidthLine("0x" + Integer.toHexString(cnt), usage, total, time);			}
+		}
+
+		ptc.printLogMessage("");
+		printBandwidthLine("Total", total, total, time);
+		
+		total = 0;
+		for(int cnt=0;cnt<256;cnt++) {
+			total += ptc.packetCounters[cnt];
+		}
+		
+		ptc.printLogMessage("");
+		ptc.printLogMessage("Bandwidth Stats - since login" );
+		ptc.printLogMessage("");
+		
+		for(int cnt=0;cnt<256;cnt++) {
+			int usage = ptc.packetCounters[cnt];
+			if(usage > total/100) {
+				printBandwidthLine("0x" + Integer.toHexString(cnt), usage, total, time);			}
+		}
+
+		ptc.printLogMessage("");
+		printBandwidthLine("Total", total, total, time);
+		ptc.printLogMessage("");
+		
+		clearCounters();
+	}
+	
+	void printBandwidthLine(String prefix, int usage, int total, long time) {
+		String kb = "" + (usage/1024) + "                            ";
+		String kbs = "" + ((1000.0*(usage/1024.0))/time) + "                              ";
+		String percent = "" + ((100.0*usage)/total) + "                           ";
+		
+		ptc.printLogMessage("     " + prefix + ": " + kbs.substring(0,5) + "kB/s (" + percent.substring(0,6) + "%)");
+
+	}
+	
 
 }
