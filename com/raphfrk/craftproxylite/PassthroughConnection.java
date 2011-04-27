@@ -105,8 +105,8 @@ public class PassthroughConnection extends KillableThread {
 			
 			printLogMessage("Connecting to: " + clientInfo.getHostname());
 			
-			String nextHostname = RedirectManager.getNextHostname(listenHostname, clientInfo.getHostname());
-			Integer nextPortnum = RedirectManager.getNextPort(listenHostname, clientInfo.getHostname());
+			String nextHostname = RedirectManager.getNextHostname(listenHostname, clientInfo.getHostname(), clientInfo.getForward());
+			Integer nextPortnum = RedirectManager.getNextPort(listenHostname, clientInfo.getHostname(), clientInfo.getForward());
 			
 			if(nextHostname == null || nextPortnum == null) {
 				printLogMessage("Unable to parse hostname: " + clientInfo.getHostname());
@@ -129,7 +129,7 @@ public class PassthroughConnection extends KillableThread {
 				return;
 			}
 			
-			Boolean proxyLogin = RedirectManager.isNextProxy(listenHostname, clientInfo.getHostname());
+			Boolean proxyLogin = RedirectManager.isNextProxy(listenHostname, clientInfo.getHostname(), clientInfo.getForward());
 			
 			if(proxyLogin == null) {
 				printLogMessage("Unable to determine if next login is a proxy");

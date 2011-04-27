@@ -26,7 +26,7 @@ public class RedirectManager {
 	}
 
 	
-	public static String removePrefix(String listenHostname, String hostname) {
+	public static String removePrefix(String listenHostname, String hostname, boolean forward) {
 		
 		if(hostname == null || listenHostname == null) {
 			return null;
@@ -39,7 +39,7 @@ public class RedirectManager {
 			hostname = hostname.substring(listenHostname.length());
 			hostname = hostname.trim();
 		} else {
-			return hostname;
+			return forward?null:hostname;
 		}
 		
 		if(hostname.startsWith(",")) {
@@ -52,9 +52,9 @@ public class RedirectManager {
 		return hostname;
 	}
 	
-	public static Boolean isNextProxy(String listenHostname, String hostname) {
+	public static Boolean isNextProxy(String listenHostname, String hostname, boolean forward) {
 
-		hostname = removePrefix(listenHostname, hostname);
+		hostname = removePrefix(listenHostname, hostname, forward);
 		
 		if(hostname == null) {
 			return null;
@@ -63,12 +63,12 @@ public class RedirectManager {
 		return hostname.indexOf(",") >=0;
 	}
 	
-	public static String[] pare(String listenHostname, String hostname) {
+	public static String[] pare(String listenHostname, String hostname, boolean forward) {
 		
 		if(hostname == null || listenHostname == null) {
 			return null;
 		}
-		hostname = removePrefix(listenHostname, hostname);
+		hostname = removePrefix(listenHostname, hostname, forward);
 		
 		if(hostname == null) {
 			return null;
@@ -79,9 +79,9 @@ public class RedirectManager {
 		return split;
 	}
 	
-	public static String getNextHostname(String listenHostname, String hostname) {
+	public static String getNextHostname(String listenHostname, String hostname, boolean forward) {
 		
-		String[] split = pare(listenHostname, hostname);
+		String[] split = pare(listenHostname, hostname, forward);
 		
 		if(split == null) {
 			return null;
@@ -99,9 +99,9 @@ public class RedirectManager {
 	
 	}
 	
-	public static Integer getNextPort(String listenHostname, String hostname) {
+	public static Integer getNextPort(String listenHostname, String hostname, boolean forward) {
 		
-		String[] split = pare(listenHostname, hostname);
+		String[] split = pare(listenHostname, hostname, forward);
 		
 		if(split == null) {
 			return null;
