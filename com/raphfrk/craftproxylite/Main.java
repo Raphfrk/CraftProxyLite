@@ -24,10 +24,26 @@ public class Main {
 		String listenHostname = null;
 		String defaultHostname = null;
 
-		String usageString = "craftproxy <listen hostname>:<listen port> <default hostname>:<default-port> [hell] [quiet] [reconnectfile path_to_file] [verbose] [info] [auth] [clientversion num] [delay num] [local_alias alias] [debug] [banned banfile]";
+		String usageString = "craftproxy <listen hostname>:<listen port> <default hostname>:<default-port> .... parameters";
 
 		if( args.length < 2 ) {
 			Logging.log( "Usage: " + usageString );
+			Logging.log("    auth                  Switches on authentication (not needed)");
+			Logging.log("    auth_off              Switches off authentication");
+			Logging.log("    staticlocalhost       Forces use of 127.0.0.1 for localhost");
+			Logging.log("    clientversion  <num>  Allows manually setting of client version");
+			Logging.log("    password <password>   Sets password for multi-LAN/global mode");
+			Logging.log("    reconnectfile <file>  Sets the reconnect file");
+			Logging.log("    banned <file>         Sets the banned list file");
+			Logging.log("    log <file>            Redirects output to a log file");
+			Logging.log("    dimension <num>       Sets the dimension (-1 = hell, 0=normal)");
+			Logging.log("    seed <num>            Sets the world seed");
+			Logging.log("    monitor <period ms>   Enables bandwidth use logging");
+			Logging.log("    quiet:                Reduces logging");
+			Logging.log("    info:                 Gives more information");
+			Logging.log("    debug:                Gives debug info");
+					
+					
 			if(consoleInput) {
 				System.exit(0);
 			}
