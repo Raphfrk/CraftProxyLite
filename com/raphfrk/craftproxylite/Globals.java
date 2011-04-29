@@ -91,7 +91,7 @@ public class Globals {
 		info = newInfo;
 	}
 	
-	static private boolean authenticate = false;
+	static private boolean authenticate = true;
 	
 	public synchronized static boolean isAuth() {
 		return authenticate;
