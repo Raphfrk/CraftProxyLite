@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
@@ -232,7 +233,9 @@ public class Packet01Login extends Packet {
 	static boolean authenticate( String username , String hashString, PassthroughConnection ptc )  {
 
 		try {
-			String authURLString = new String( "http://www.minecraft.net/game/checkserver.jsp?user=" + username + "&serverId=" + hashString);
+			String encodedUsername =  URLEncoder.encode(username, "UTF-8");
+			String encodedHashString =  URLEncoder.encode(hashString, "UTF-8");
+			String authURLString = new String( "http://www.minecraft.net/game/checkserver.jsp?user=" + encodedUsername + "&serverId=" + encodedHashString);
 			if(!Globals.isQuiet()) {
 				ptc.printLogMessage("Authing with " + authURLString);
 			}
