@@ -156,7 +156,10 @@ public class Packet extends ProtocolUnit {
 
 	@Override
 	public Packet write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
-		int oldCounter = ptc.packetCounter;
+		int oldCounter = 0;
+		if(ptc != null) {
+			oldCounter = ptc.packetCounter;
+		}
 
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
@@ -168,8 +171,8 @@ public class Packet extends ProtocolUnit {
 				return null;
 			}
 		}
-		int newCounter = ptc.packetCounter;
-		if(packetId != null) {
+		if(packetId != null && ptc != null) {
+			int newCounter = ptc.packetCounter;
 			ptc.packetCounters[packetId & 0xFF] += newCounter - oldCounter;
 		}
 		return this;

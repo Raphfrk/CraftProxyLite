@@ -52,7 +52,7 @@ public abstract class ProtocolUnit implements Cloneable {
 	}
 	
 	void incrementCounter(boolean serverToClient, int size, PassthroughConnection ptc) {
-		if(serverToClient) {
+		if(serverToClient && ptc != null) {
 			ptc.packetCounter += size;
 		}
 	}
