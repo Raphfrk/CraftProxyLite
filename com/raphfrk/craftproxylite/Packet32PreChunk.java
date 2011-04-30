@@ -9,6 +9,9 @@ public class Packet32PreChunk extends Packet {
 	
 	Packet32PreChunk(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
+		if(packetId != defaultPacketId) {
+			System.out.println("Unexpected packet Id, obtained " + packetId + " but expected " + defaultPacketId);
+		}
 	}
 	
 	Packet32PreChunk(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {

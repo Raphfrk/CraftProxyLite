@@ -19,6 +19,9 @@ public class Packet01Login extends Packet {
 	
 	Packet01Login(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
+		if(packetId != defaultPacketId) {
+			System.out.println("Unexpected packet Id, obtained " + packetId + " but expected " + defaultPacketId);
+		}
 	}
 	
 	Packet01Login(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {

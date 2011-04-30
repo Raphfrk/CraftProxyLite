@@ -9,6 +9,9 @@ public class Packet10HoldingChange extends Packet {
 	
 	Packet10HoldingChange(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
+		if(packetId != defaultPacketId) {
+			System.out.println("Unexpected packet Id, obtained " + packetId + " but expected " + defaultPacketId);
+		}
 	}
 	
 	Packet10HoldingChange(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {

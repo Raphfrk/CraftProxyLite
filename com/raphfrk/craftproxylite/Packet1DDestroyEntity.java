@@ -9,6 +9,9 @@ public class Packet1DDestroyEntity extends Packet {
 	
 	Packet1DDestroyEntity(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
+		if(packetId != defaultPacketId) {
+			System.out.println("Unexpected packet Id, obtained " + packetId + " but expected " + defaultPacketId);
+		}
 	}
 	
 	Packet1DDestroyEntity(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {

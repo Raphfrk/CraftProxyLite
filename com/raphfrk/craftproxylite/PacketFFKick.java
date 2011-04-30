@@ -9,6 +9,9 @@ public class PacketFFKick extends Packet {
 	
 	PacketFFKick(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
+		if(packetId != defaultPacketId) {
+			System.out.println("Unexpected packet Id, obtained " + packetId + " but expected " + defaultPacketId);
+		}
 	}
 	
 	PacketFFKick(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
