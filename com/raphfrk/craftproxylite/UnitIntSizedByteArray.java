@@ -9,6 +9,8 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 
 	UnitInteger lengthUnit;
 	
+	boolean compressed = false;
+	
 	private Integer length;
 	private byte[] value = null;
 
@@ -30,9 +32,20 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			return null;
 		}
 		
-		if(length > 262144) {
+		if(length > 262144 || length < -262144) {
 			ptc.printLogMessage("Byte array out of allowed range (" + length + ") - breaking connection");
 			return null;
+		}
+		
+		return readStandard(in, ptc, thread);
+		
+	}
+	
+	private byte[] readStandard(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+		
+		if(length < 0) {
+			compressed = true;
+			length = -length;
 		}
 		
 		setupBuffer(null);
@@ -58,10 +71,15 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			}
 		}
 		
-		return value;
-
+		if(!compressed) {
+			return value;
+		} else if(value == null) {
+			return null;
+		}
+		
+		return null;
 	}
-
+	
 	@Override
 	public byte[] write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
@@ -98,6 +116,16 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		length = lengthUnit.read(in, ptc, thread, serverToClient, linkState);
 		if(length == null) {
 			return null;
+		}
+		
+		if(length < 0) {
+			readStandard(in, ptc, thread);
+			if(getValue() != null) {
+				return write(out, ptc, thread, serverToClient);
+			} else {
+				return null;
+			}
+			
 		}
 		
 		if(length > 262144) {

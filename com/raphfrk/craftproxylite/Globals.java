@@ -121,6 +121,16 @@ public class Globals {
 		Globals.varyLocalhost = varyLocalhost;
 	}
 	
+	static private boolean cacheChunks = false;
+	
+	public synchronized static boolean isChunkCache() {
+		return cacheChunks;
+	}
+	
+	public synchronized static void setChunkCache( boolean cacheChunks ) {
+		Globals.cacheChunks = cacheChunks;
+	}
+	
 	static private int defaultPlayerId = 456789012;
 		
 	public synchronized static int getDefaultPlayerId() {

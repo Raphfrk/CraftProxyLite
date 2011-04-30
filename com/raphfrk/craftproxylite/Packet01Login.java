@@ -140,7 +140,11 @@ public class Packet01Login extends Packet {
 		Packet02Handshake StCHandshake = new Packet02Handshake(in, ptc, thread);
 		
 		if(StCHandshake.packetId == null || StCHandshake.read(in, ptc, thread, true, null) == null) {
-			return "Server sent bad handshake packet";
+			if(StCHandshake.packetId != null) {
+				return "Server sent bad handshake packet - (Id = " + StCHandshake.packetId + ")";
+			} else {
+				return "Server sent bad handshake packet -  (Id read failed)";
+			}
 		}
 		
 		Packet01Login clientLogin = new Packet01Login(out, ptc, thread);
