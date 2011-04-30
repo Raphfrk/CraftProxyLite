@@ -112,6 +112,9 @@ public class PassthroughConnection extends KillableThread {
 				printLogMessage("Unable to parse hostname: " + clientInfo.getHostname());
 				PacketFFKick.kick(clientSocket.out, this, this, "Unable to parse hostname: " + clientInfo.getHostname());
 				LocalSocket.closeSocket(clientSocket.socket, this);
+				if(firstConnection) {
+					ReconnectCache.remove(clientInfo.getUsername());
+				}
 				return;
 			}
 			
@@ -120,6 +123,9 @@ public class PassthroughConnection extends KillableThread {
 				printLogMessage("Unable to open connection to backend server");
 				PacketFFKick.kick(clientSocket.out, this, this, "Unable to connect to backend server");
 				LocalSocket.closeSocket(clientSocket.socket, this);
+				if(firstConnection) {
+					ReconnectCache.remove(clientInfo.getUsername());
+				}
 				return;
 			}
 			LocalSocket serverSocket = new LocalSocket(serverBasicSocket, this);
@@ -134,6 +140,9 @@ public class PassthroughConnection extends KillableThread {
 			if(proxyLogin == null) {
 				printLogMessage("Unable to determine if next login is a proxy");
 				PacketFFKick.kickAndClose(clientSocket, this, this, "Unable to determine if next login is a proxy");
+				if(firstConnection) {
+					ReconnectCache.remove(clientInfo.getUsername());
+				}
 				return;
 			}
 			
@@ -142,6 +151,9 @@ public class PassthroughConnection extends KillableThread {
 				printLogMessage(kickMessage);
 				PacketFFKick.kick(clientSocket.out, this, this, kickMessage);
 				connected = false;
+				if(firstConnection) {
+					ReconnectCache.remove(clientInfo.getUsername());
+				}
 			}
 			if(connected) {
 				
