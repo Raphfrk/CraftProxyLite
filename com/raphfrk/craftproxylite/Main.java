@@ -121,7 +121,7 @@ public class Main {
 			ReconnectCache.save();
 			server.interrupt();
 		} else {
-			Logging.log("Server console disabled");
+			Logging.log("[CraftProxy-Lite] Server console disabled");
 			while(true) {
 				try {
 					synchronized(sleeper) {

@@ -82,10 +82,10 @@ public class MiscUtils {
 		try {
 			bw = new BufferedWriter(new FileWriter(portalFile));
 		} catch (FileNotFoundException fnfe ) {
-			MiscUtils.safeLogging(log, "[Serverport] Unable to write to gate file: " + filename );
+			MiscUtils.safeLogging(log, "[CraftProxy-Lite] Unable to write to file: " + filename );
 			return;
 		} catch (IOException ioe) {
-			MiscUtils.safeLogging(log, "[Serverport] Unable to write to gate file: " + filename );
+			MiscUtils.safeLogging(log, "[CraftProxy-Lite] Unable to write to file: " + filename );
 			return;
 		}
 		
@@ -96,7 +96,7 @@ public class MiscUtils {
 			}
 			bw.close();
 		} catch (IOException ioe) {
-			MiscUtils.safeLogging(log, "[Serverport] Unable to write to gate file: " + filename );
+			MiscUtils.safeLogging(log, "[CraftProxy-Lite] Unable to write to file: " + filename );
 			return;
 		}
 		
@@ -111,7 +111,7 @@ public class MiscUtils {
 		try {
 			br = new BufferedReader(new FileReader(portalFile));
 		} catch (FileNotFoundException fnfe ) {
-			MiscUtils.safeLogging(log, "[Serverport] Unable to open gate file: " + filename );
+			MiscUtils.safeLogging(log, "[CraftProxy-Lite] Unable to open file: " + filename );
 			return null;
 		} 
 		
@@ -127,7 +127,7 @@ public class MiscUtils {
 		}
 		br.close();
 		} catch (IOException ioe) {
-			MiscUtils.safeLogging( log , "[Serverport] Error reading file: " + filename );
+			MiscUtils.safeLogging( log , "[CraftProxy-Lite] Error reading file: " + filename );
 			return null;
 		}
 		
@@ -139,7 +139,7 @@ public class MiscUtils {
 		String[] split = line.split("=",-1);
 		
 		if( split.length < 2 ) {
-			MiscUtils.safeLogging( log , "[Serverport] Unable to parse parameter from: " + line );
+			MiscUtils.safeLogging( log , "[CraftProxy-Lite] Unable to parse parameter from: " + line );
 			return null;
 		}
 		
@@ -189,7 +189,7 @@ public class MiscUtils {
 			int x = Integer.parseInt(var.trim());
 			return x;
 		} catch (NumberFormatException nfe ) {
-			MiscUtils.safeLogging( log , "[Serverport] Unable to parse " + var + " as integer" );
+			MiscUtils.safeLogging( log , "[CraftProxy-Lite] Unable to parse " + var + " as integer" );
 			return 0;
 		}
 		
@@ -212,7 +212,7 @@ public class MiscUtils {
 			long x = Long.parseLong(var.trim());
 			return x;
 		} catch (NumberFormatException nfe ) {
-			MiscUtils.safeLogging( log , "[Serverport] Unable to parse " + var + " as Long" );
+			MiscUtils.safeLogging( log , "[CraftProxy-Lite] Unable to parse " + var + " as Long" );
 			return 0;
 		}
 		
@@ -235,7 +235,7 @@ public class MiscUtils {
 			double x = Double.parseDouble(var.trim());
 			return x;
 		} catch (NumberFormatException nfe ) {
-			MiscUtils.safeLogging( log , "[Serverport] Unable to parse " + var + " as Double" );
+			MiscUtils.safeLogging( log , "[CraftProxy-Lite] Unable to parse " + var + " as Double" );
 			return 0.0;
 		}
 		
