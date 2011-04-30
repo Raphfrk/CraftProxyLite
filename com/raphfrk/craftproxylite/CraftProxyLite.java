@@ -34,7 +34,8 @@ public class CraftProxyLite extends JavaPlugin {
 			    "staticlocalhost",
 			    "quiet",
 			    "info",
-			    "debug"
+			    "debug",
+			    "disable_flood"
 		};
 			
 		String doubleOptions[] = new String[] {
@@ -68,11 +69,14 @@ public class CraftProxyLite extends JavaPlugin {
 		args.add(pf.getString("default_server", "25565"));
 		
 		for(String current : singleOptions) {
-			Boolean temp = current.equals("quiet");
+			Boolean temp = current.equals("quiet") || current.equals("staticlocalhost");
 
 			temp = pf.getBoolean(current, temp);
 			if(temp) {
 				args.add(current);
+			}
+			if(current.equals("staticlocalhost") && !temp) {
+				args.add("rotatelocalhost");
 			}
 		}
 		

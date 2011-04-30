@@ -97,7 +97,7 @@ public class ProxyListener extends KillableThread {
 			Logging.log("Connection from " + address + "/" + port);
 			long currentTime = System.currentTimeMillis();
 			Long lastConnect = lastLogin.get(address);
-			boolean floodProtection = lastConnect != null && lastConnect + 5000 > currentTime;
+			boolean floodProtection = !address.equals("127.0.0.1") && Globals.isFlood() && lastConnect != null && lastConnect + 5000 > currentTime;
 			lastLogin.put(address, currentTime);
 			if(floodProtection) {
 				Logging.log("Disconnecting due to connect flood protection");

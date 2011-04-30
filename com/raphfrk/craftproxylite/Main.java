@@ -31,6 +31,7 @@ public class Main {
 			Logging.log("    auth                  Switches on authentication (not needed)");
 			Logging.log("    auth_off              Switches off authentication");
 			Logging.log("    staticlocalhost       Forces use of 127.0.0.1 for localhost");
+			Logging.log("    rotatelocalhost       Uses a different 127.0.x.y for each connection to localhost");
 			Logging.log("    clientversion  <num>  Allows manually setting of client version");
 			Logging.log("    password <password>   Sets password for multi-LAN/global mode");
 			Logging.log("    reconnectfile <file>  Sets the reconnect file");
@@ -40,6 +41,7 @@ public class Main {
 			Logging.log("    seed <num>            Sets the world seed");
 			Logging.log("    monitor <period ms>   Enables bandwidth use logging");
 			Logging.log("    quiet:                Reduces logging");
+			Logging.log("    disable_flood:        Disables flood protection");
 			Logging.log("    info:                 Gives more information");
 			Logging.log("    debug:                Gives debug info");
 					
@@ -60,10 +62,12 @@ public class Main {
 					else if( args[pos].equals("auth"))           Globals.setAuth(true);
 					else if( args[pos].equals("auth_off"))       Globals.setAuth(false);
 					else if( args[pos].equals("staticlocalhost"))  Globals.setVaryLocalhost(false);
+					else if( args[pos].equals("rotatelocalhost"))  Globals.setVaryLocalhost(true);
 					else if( args[pos].equals("debug"))          Globals.setDebug(true);
 					else if( args[pos].equals("clientversion")){ Globals.setClientVersion(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("password"))     { Globals.setPassword(args[pos+1]); pos++;}
 					else if( args[pos].equals("quiet"))          Globals.setQuiet(true);
+					else if( args[pos].equals("disable_flood")) Globals.setFlood(false);
 					else if( args[pos].equals("reconnectfile")){ ReconnectCache.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("banned"))       { BanList.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("dimension"))       { Globals.setDimension(Byte.parseByte(args[pos+1])); pos++;}

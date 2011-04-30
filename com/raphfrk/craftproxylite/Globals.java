@@ -31,6 +31,16 @@ public class Globals {
 		Globals.seed = seed;
 	}
 	
+	static private boolean flood = true;
+	
+	public synchronized static boolean isFlood() {
+		return flood;
+	}
+	
+	public synchronized static void setFlood( boolean newFlood ) {
+		flood = newFlood;
+	}
+	
 	static private boolean quiet = false;
 
 	public synchronized static boolean isQuiet() {
@@ -101,7 +111,7 @@ public class Globals {
 		authenticate = newAuth;
 	}
 	
-	static private boolean varyLocalhost = true;
+	static private boolean varyLocalhost = false;
 	
 	public synchronized static boolean varyLocalhost() {
 		return varyLocalhost;
