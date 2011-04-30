@@ -9,6 +9,9 @@ public class Packet02Handshake extends Packet {
 	
 	Packet02Handshake(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
+		if(packetId != defaultPacketId) {
+			System.out.println("Unexpected packet Id, obtained " + packetId + " but expected " + defaultPacketId);
+		}
 	}
 	
 	Packet02Handshake(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
