@@ -14,37 +14,77 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 public class Packet01Login extends Packet {
-	
+
 	final static Byte defaultPacketId = 0x01;
-	
+
 	Packet01Login(Byte packetId) {
 		super(packetId == defaultPacketId ? defaultPacketId : (Byte)null);
 		if(packetId != defaultPacketId) {
 			System.out.println("Unexpected packet Id, obtained " + packetId + " but expected " + defaultPacketId);
 		}
 	}
-	
+
 	Packet01Login(DataOutputStream out, PassthroughConnection ptc, KillableThread thread) {
 		super(out, ptc, thread, defaultPacketId);
 	}
-	
+
 	Packet01Login(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
 		super(in, ptc, thread);
 	}
-	
+
+	static String bridgingLogin(DataInputStream clientIn, DataOutputStream clientOut, DataInputStream serverIn, DataOutputStream serverOut, PassthroughConnection ptc, KillableThread thread, boolean auth, ClientInfo clientInfo) {
+
+		Packet02Handshake CtSHandshake = new Packet02Handshake(serverOut, ptc, thread);
+		
+		CtSHandshake.setUsername(clientInfo.getUsername());
+		
+		if(CtSHandshake.packetId == null || CtSHandshake.write(serverOut, ptc, thread, false) == null) {
+			return "Server rejected intial handshake packet";
+		}
+		
+		Packet02Handshake StCHandshake = new Packet02Handshake(serverIn, ptc, thread);
+
+		if(StCHandshake.packetId == null || StCHandshake.read(serverIn, ptc, thread, true, null) == null) {
+			if(StCHandshake.packetId != null) {
+				return "Server sent bad handshake packet - (Id = " + StCHandshake.packetId + ")";
+			} else {
+				return "Server sent bad handshake packet -  (Id read failed)";
+			}
+		}
+		
+		if(StCHandshake.writePacketId(clientOut, ptc, thread, false) == null || StCHandshake.write(clientOut, ptc, thread, false) == null) {
+			return "Client rejected initial handshake";
+		}
+
+		Packet01Login clientLogin = new Packet01Login(clientIn, ptc, thread);
+
+		if(clientLogin.packetId == null || clientLogin.read(clientIn, ptc, thread, true, null) == null) {
+			return "Client sent bad login packet";
+		}
+		
+		clientLogin.setVersion(Globals.getFakeVersion() + 1);
+		
+		if(clientLogin.writePacketId(serverOut, ptc, thread, false) == null || clientLogin.write(serverOut, ptc, thread, false) == null) {
+			return "Server rejected client login packet";
+		}
+		
+		return null;
+		
+	}
+
 	static String processLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean auth, ClientInfo clientInfo) {
-		
+
 		Packet02Handshake CtSHandshake = new Packet02Handshake(in, ptc, thread);
-		
+
 		if(CtSHandshake.packetId == null || CtSHandshake.read(in, ptc, thread, true, null) == null) {
 			return "Client refused to send initial handshake";
 		}
-		
+
 		ptc.clientInfo.setUsername(CtSHandshake.getUsername());
 		ptc.printLogMessage(CtSHandshake.getUsername() + " attempting to log in to proxy");
-		
+
 		Packet02Handshake StCHandshake = new Packet02Handshake(out, ptc, thread);
-		
+
 		String hashString;
 		if( auth ) {
 			hashString = getHashString();
@@ -54,63 +94,68 @@ public class Packet01Login extends Packet {
 		} else {
 			hashString = "-";
 		}
-		
+
 		StCHandshake.setUsername(hashString);
 		
 		if(StCHandshake.packetId == null || StCHandshake.write(out, ptc, thread, false) == null) {
 			return "Client rejected initial handshake";
 		}
-		
+
 		Packet01Login clientLogin = new Packet01Login(in, ptc, thread);
-		
+
 		if(clientLogin.packetId == null || clientLogin.read(in, ptc, thread, true, null) == null) {
 			return "Client sent bad login packet";
 		}
-		
+
 		String password = Globals.getPassword();
-		
+
 		boolean canSkipAuth = false;
-		
-		if(password != null && clientLogin.getVersion() == Globals.getFakeVersion()) {
-			
+
+		int version = clientLogin.getVersion();
+		int fakeversion = Globals.getFakeVersion();
+
+		if(password != null && (version == fakeversion)) {
+
 			PacketFFKick fakeKickPacket = new PacketFFKick(out, ptc, thread);
-			
+
 			fakeKickPacket.setMessage("Version mismatch between client and server");
 
 			if(fakeKickPacket.packetId == null || fakeKickPacket.write(out, ptc, thread, false) == null ) {
 				return "Client rejected fake kick packet";
 			}
-			
+
 			Packet02Handshake hashReply = new Packet02Handshake(in, ptc, thread);
 			if(hashReply.packetId == null || hashReply.read(in, ptc, thread, true, null) == null) {
 				return "Client sent bad hash reply packet";
 			}
-			
+
 			String toHash = hashString + password;
-			
+
 			String replyIdeal = sha1Hash(toHash).substring(0,16);
-			
+
 			String reply = hashReply.getUsername();
-			
+
 			if(!reply.equals(replyIdeal)) {
 				return "Password not accepted for proxy to proxy link";
 			}
-			
+
 			Packet02Handshake hostnameForward = new Packet02Handshake(in, ptc, thread);
 			if(hostnameForward.packetId == null || hostnameForward.read(in, ptc, thread, true, null) == null) {
 				return "Client sent bad hostname forwarding packet";
 			}
-			
+
 			clientInfo.setForward(true);
 			clientInfo.setHostname(hostnameForward.getUsername());
-			
+
 			canSkipAuth = true;
-			
-			
+
+		} else if(version == fakeversion + 1 ) {
+			ptc.printLogMessage("Local cache detected for client");
+			clientInfo.setLocalCache(true);
 		} else if(clientLogin.getVersion() != Globals.getClientVersion()) {
 			return "Client attempted to login with incorrect version";
 		}
-		
+
 		if(auth && !canSkipAuth) {
 			if(!authenticate(ptc.clientInfo.getUsername(), hashString,  ptc)) {
 				return "Proxy is unable to authenticate";
@@ -118,9 +163,9 @@ public class Packet01Login extends Packet {
 		}
 		
 		return null;
-		
+
 	}
-	
+
 	static String serverLogin(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean loginToProxy, ClientInfo clientInfo) {
 
 		if(loginToProxy) {
@@ -128,17 +173,17 @@ public class Packet01Login extends Packet {
 		} else {
 			ptc.printLogMessage("Attempting to log into backend server");
 		}
-		
+
 		Packet02Handshake CtSHandshake = new Packet02Handshake(out, ptc, thread);
-		
+
 		CtSHandshake.setUsername(ptc.clientInfo.getUsername());
-		
+
 		if(CtSHandshake.packetId == null || CtSHandshake.write(out, ptc, thread, false) == null) {
 			return "Server rejected intial handshake packet";
 		}
-		
+
 		Packet02Handshake StCHandshake = new Packet02Handshake(in, ptc, thread);
-		
+
 		if(StCHandshake.packetId == null || StCHandshake.read(in, ptc, thread, true, null) == null) {
 			if(StCHandshake.packetId != null) {
 				return "Server sent bad handshake packet - (Id = " + StCHandshake.packetId + ")";
@@ -146,70 +191,72 @@ public class Packet01Login extends Packet {
 				return "Server sent bad handshake packet -  (Id read failed)";
 			}
 		}
-		
+
 		Packet01Login clientLogin = new Packet01Login(out, ptc, thread);
-		
+
 		if(!loginToProxy) {
 			clientLogin.setVersion(Globals.getClientVersion());
+		} else if(Globals.localCache()) { 
+			clientLogin.setVersion(Globals.getFakeVersion() + 1);
 		} else {
 			clientLogin.setVersion(Globals.getFakeVersion());
-		}
+		} 
 		clientLogin.setUsername(ptc.clientInfo.getUsername());
 		clientLogin.setDimension((byte)0);
 		clientLogin.setMapSeed(0);
-		
+
 		if(clientLogin.packetId == null || clientLogin.write(out, ptc, thread, false) == null) {
 			return "Server rejected client login packet";
 		}
-		
+
 		if(loginToProxy) {
 
 			PacketFFKick fakeKick = new PacketFFKick(in, ptc, thread);
-			
+
 			if(fakeKick.packetId == null || fakeKick.read(in, ptc, thread, true, null) == null) {
 				return "Server sent bad fake kick packet";
 			}
-			
+
 			if(!fakeKick.getMessage().equals("Version mismatch between client and server")) {
 				return "Last server in globalhost list should be the actual server";
 			}
-			
+
 			String hashString = StCHandshake.getUsername();
-			
+
 			String password = Globals.getPassword();
-			
+
 			String toHash = hashString + password;
-			
+
 			String reply = sha1Hash(toHash).substring(0,16);
-			
+
 			Packet02Handshake hashReply = new Packet02Handshake(out, ptc, thread);
-			
+
 			hashReply.setUsername(reply);
-			
+
 			if(hashReply.packetId == null || hashReply.write(out, ptc, thread, false) == null) {
 				return "Server rejected hash reply packet";
 			}
-			
+
 			Packet02Handshake hostnameForwarding = new Packet02Handshake(out, ptc, thread);
-			
+
 			hostnameForwarding.setUsername(clientInfo.getHostname());
-			
+
 			if(hostnameForwarding.packetId == null || hostnameForwarding.write(out, ptc, thread, false) == null) {
 				return "Server rejected forwarding hostname packet";
 			}
-			
+
 			if(!Globals.isQuiet()) {
 				ptc.printLogMessage("Sent hostname as : " + clientInfo.getHostname());
 			}
-			
+
 		}
-		
+
 		return null;
 	}
 
-	
+
 	static SecureRandom hashGenerator = new SecureRandom();
-	
+
 	static String getHashString() {
 		long hashLong;
 		synchronized( hashGenerator ) {
@@ -218,7 +265,7 @@ public class Packet01Login extends Packet {
 
 		return Long.toHexString(hashLong);
 	}
-	
+
 	static String sha1Hash( String inputString ) {
 
 		try {
@@ -236,7 +283,7 @@ public class Packet01Login extends Packet {
 		}
 
 	}
-	
+
 	static boolean authenticate( String username , String hashString, PassthroughConnection ptc )  {
 
 		try {
@@ -257,9 +304,9 @@ public class Packet01Login extends Packet {
 			}
 
 			in.close();
-			
+
 			if( reply != null && reply.equals("YES")) {
-				
+
 				if(!Globals.isQuiet()) {
 					ptc.printLogMessage("Auth successful");
 				}
@@ -273,12 +320,12 @@ public class Packet01Login extends Packet {
 
 		return false;
 	}
-	
+
 	int getVersion() {
 		super.setupFields();
 		return (Integer)fields[0].getValue();
 	}
-	
+
 	void setVersion(int value) {
 		super.setupFields();
 		((UnitInteger)fields[0]).setValue(value);
@@ -288,17 +335,17 @@ public class Packet01Login extends Packet {
 		super.setupFields();
 		return (String)fields[1].getValue();
 	}
-	
+
 	void setUsername(String value) {
 		super.setupFields();
 		((UnitString)fields[1]).setValue(value);
 	}
-	
+
 	long getMapSeed() {
 		super.setupFields();
 		return (Long)fields[2].getValue();
 	}
-	
+
 	void setMapSeed(long value) {
 		super.setupFields();
 		((UnitLong)fields[2]).setValue(value);
@@ -308,10 +355,10 @@ public class Packet01Login extends Packet {
 		super.setupFields();
 		return (Byte)fields[3].getValue();
 	}
-	
+
 	void setDimension(byte value) {
 		super.setupFields();
 		((UnitByte)fields[3]).setValue(value);
 	}
-	
+
 }

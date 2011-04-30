@@ -26,6 +26,10 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 
 	@Override
 	public byte[] read(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, DownlinkState linkState) {
+		return read(in, ptc, thread, serverToClient, linkState, null);
+	}
+		
+	public byte[] read(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, DownlinkState linkState, byte[] buffer) {
 
 		length = lengthUnit.read(in, ptc, thread, serverToClient, linkState);
 		if(length == null) {
@@ -37,18 +41,22 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			return null;
 		}
 		
-		return readStandard(in, ptc, thread);
+		return readStandard(in, ptc, thread, buffer);
 		
 	}
 	
-	private byte[] readStandard(DataInputStream in, PassthroughConnection ptc, KillableThread thread) {
+	private byte[] readStandard(DataInputStream in, PassthroughConnection ptc, KillableThread thread, byte[] buffer) {
+		
+		if(length == null) {
+			return null;
+		}
 		
 		if(length < 0) {
 			compressed = true;
 			length = -length;
 		}
 		
-		setupBuffer(null);
+		setupBuffer(buffer);
 
 		int pos = 0;
 
@@ -77,7 +85,47 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			return null;
 		}
 		
-		return null;
+		ChunkScan chunkScan = ptc.chunkScan;
+		
+		if(Globals.compressInfo()) {
+			ptc.printLogMessage("Initial packet length: " + length);
+		}
+		if(chunkScan.expandChunkData(buffer, length, buffer) == null) {
+			return null;
+		}
+		
+		chunkScan.extractHashes(buffer, ptc.hashes);
+		
+		int miss = 0;
+		int hit = 0;
+		for(int cnt=0;cnt<40;cnt++) {
+			long hash = ptc.hashes[cnt];
+			byte[] cachedHash = ptc.hashCache.getArray(hash);
+			byte[] hashArray;
+			if(cachedHash == null) {
+				miss++;
+				hashArray = new byte[2048];
+				HashThread.transferArray(buffer, 32768, cnt, hashArray, 0, false);
+				ptc.hashCache.addArray(hash, hashArray);
+			} else {
+				hit++;
+				HashThread.transferArray(buffer, 32768, cnt, cachedHash, 0, true);
+			}
+		}
+		
+		if(Globals.compressInfo()) {
+			ptc.printLogMessage("Hit-Miss = " + hit + "-" + miss);
+		}
+		
+		Integer newLength = chunkScan.recompressChunkData(buffer, true, null);
+		
+		if(newLength == null) {
+			return null;
+		}
+		
+		lengthUnit.setValue(newLength);
+		
+		return value;
 	}
 	
 	@Override
@@ -87,11 +135,14 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		if(length == null) {
 			return null;
 		}
-		
+
 		incrementCounter(serverToClient, length, ptc);
 		
 		while(true) {
 			try {
+				if(length < 0) {
+					length = -length;
+				}
 				out.write(value, 0, length);
 				out.flush();
 			} catch ( SocketTimeoutException toe ) {
@@ -119,7 +170,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		}
 		
 		if(length < 0) {
-			readStandard(in, ptc, thread);
+			readStandard(in, ptc, thread, buffer);
 			if(getValue() != null) {
 				return write(out, ptc, thread, serverToClient);
 			} else {
@@ -131,6 +182,10 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		if(length > 262144) {
 			ptc.printLogMessage("Byte array out of allowed range (" + length + ") - breaking connection");
 			return null;
+		}
+		
+		if(Globals.localCache() && length < 0) {
+			length = -length;
 		}
 		
 		length = lengthUnit.write(out, ptc, thread, serverToClient);

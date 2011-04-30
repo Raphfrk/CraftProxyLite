@@ -21,6 +21,7 @@ public class Packet extends ProtocolUnit {
 	final static UnitBoolean                  unitBoolean                  = new UnitBoolean();
 	final static UnitItemStack                unitItemStack                = new UnitItemStack();
 	final static UnitMetaStream               unitMetaStream               = new UnitMetaStream();
+	final static UnitChunkData                unitChunkData                = new UnitChunkData();
 	final static UnitIntSizedByteArray        unitIntSizedByteArray        = new UnitIntSizedByteArray();
 	final static UnitIntSizedTripleByteArray  unitIntSizedTripleByteArray  = new UnitIntSizedTripleByteArray();
 	final static UnitShortSizedQuadByteArray  unitShortSizedQuadByteArray  = new UnitShortSizedQuadByteArray();
@@ -69,7 +70,7 @@ public class Packet extends ProtocolUnit {
 		packetInfo[0x28] = new ProtocolUnit[] {unitEntity, unitMetaStream};
 				
 		packetInfo[0x32] = new ProtocolUnit[] {unitInt, unitInt, unitBoolean};
-		packetInfo[0x33] = new ProtocolUnit[] {unitInt, unitShort, unitInt, unitByte, unitByte, unitByte, unitIntSizedByteArray};
+		packetInfo[0x33] = new ProtocolUnit[] {unitInt, unitShort, unitInt, unitByte, unitByte, unitByte, unitChunkData};
 		packetInfo[0x34] = new ProtocolUnit[] {new UnitFixed(8), unitShortSizedQuadByteArray};
 		packetInfo[0x35] = new ProtocolUnit[] {new UnitFixed(11)};
 		packetInfo[0x36] = new ProtocolUnit[] {new UnitFixed(12)};
@@ -136,6 +137,10 @@ public class Packet extends ProtocolUnit {
 			fields[cnt] = fieldsSource[cnt].clone();
 		}
 		return true;
+	}
+	
+	public Byte writePacketId(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
+		return UnitByte.writeByte(out, packetId, ptc, null);
 	}
 
 	@Override

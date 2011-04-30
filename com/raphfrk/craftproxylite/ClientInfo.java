@@ -8,6 +8,7 @@ public class ClientInfo {
 	private int port;
 	private boolean forward = false;
 	private String hostname;
+	private boolean localCache = false;
 	
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
@@ -55,6 +56,14 @@ public class ClientInfo {
 	
 	public int getPlayerEntityId() {
 		return playerEntityId;
+	}
+	
+	public boolean getLocalCache() {
+		return localCache;
+	}
+	
+	public void setLocalCache(boolean localCache) {
+		this.localCache = localCache;
 	}
 }
 

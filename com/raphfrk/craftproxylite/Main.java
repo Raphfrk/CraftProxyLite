@@ -40,6 +40,8 @@ public class Main {
 			Logging.log("    dimension <num>       Sets the dimension (-1 = hell, 0=normal)");
 			Logging.log("    seed <num>            Sets the world seed");
 			Logging.log("    monitor <period ms>   Enables bandwidth use logging");
+			Logging.log("    compress_info         Outputs info related to the compression/cache system");
+			Logging.log("    local_cache           Puts the proxy in local cache mode");
 			Logging.log("    quiet:                Reduces logging");
 			Logging.log("    disable_flood:        Disables flood protection");
 			Logging.log("    info:                 Gives more information");
@@ -70,6 +72,8 @@ public class Main {
 					else if( args[pos].equals("disable_flood")) Globals.setFlood(false);
 					else if( args[pos].equals("reconnectfile")){ ReconnectCache.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("banned"))       { BanList.init(args[pos+1]); pos++;}
+					else if( args[pos].equals("local_cache"))  { Globals.setlocalCache(true); }
+					else if( args[pos].equals("compress_info")){ Globals.setCompressInfo(true);}
 					else if( args[pos].equals("dimension"))       { Globals.setDimension(Byte.parseByte(args[pos+1])); pos++;}
 					else if( args[pos].equals("monitor"))       { Globals.setMonitor(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("seed"))       { Globals.setSeed(Long.parseLong(args[pos+1])); pos++;}

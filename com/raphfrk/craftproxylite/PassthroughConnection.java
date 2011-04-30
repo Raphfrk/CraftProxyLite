@@ -5,21 +5,21 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
 
 public class PassthroughConnection extends KillableThread {
 
 	private final Socket socketToClient;
 	protected final ClientInfo clientInfo;
-	
+
 	private Object holdingSync = new Object(); // not really required
 	private short holding = 0;
-	
+
 	DateFormat shortTime = DateFormat.getTimeInstance(DateFormat.MEDIUM);
 
 	private Object enabledSync = new Object();
 	private boolean enabled = true;
-	
+
 	private final String listenHostname;
 	private final String defaultHostname;
 
@@ -33,13 +33,22 @@ public class PassthroughConnection extends KillableThread {
 	protected DataOutputStream outputToServer = null;
 
 	protected boolean kickMessageSent = false;
-	
+
 	private Object redirectSync = new Object();
 	private String redirect = null;
-	
+
 	public int packetCounter = 0;
 	public int packetCounters[] = new int[256];
 	public int packetLastCounters[] = new int[256];
+
+	public Object hashThreadSyncObject = new Object();
+	public HashThread[] hashThreads = null;
+	public long[] hashes = new long[40];
+
+	public HashCache hashCache = new HashCache();
+	public HashSet<Long> setHashes = new HashSet<Long>();
+	
+	public ChunkScan chunkScan = new ChunkScan();
 
 	PassthroughConnection(Socket socketToClient, String defaultHostname, String listenHostname) {
 		this.socketToClient = socketToClient;
@@ -49,12 +58,12 @@ public class PassthroughConnection extends KillableThread {
 		this.defaultHostname = defaultHostname;
 		this.listenHostname = listenHostname;
 	}
-	
+
 
 	public void run() {
-		
+
 		boolean connected = true;
-		
+
 		clientInfo.setForward(false);
 		clientInfo.setHostname(null);
 
@@ -65,7 +74,20 @@ public class PassthroughConnection extends KillableThread {
 			return;
 		}
 
-		String kickMessage = Packet01Login.processLogin(clientSocket.in, clientSocket.out, this, this, Globals.isAuth(), clientInfo);
+		String kickMessage = null;;
+
+		if(Globals.localCache()) {
+			Packet02Handshake initialHandshake = new Packet02Handshake(clientSocket.in, this, this);
+			
+			if(initialHandshake.packetId == null || initialHandshake.read(clientSocket.in, this, this, true, null) == null) {
+				kickMessage = "Client refused to send initial Handshake";
+			} else {
+				kickMessage = null;
+			}
+			clientInfo.setUsername(initialHandshake.getUsername());
+		} else {
+			kickMessage = Packet01Login.processLogin(clientSocket.in, clientSocket.out, this, this, Globals.isAuth(), clientInfo);
+		}
 
 		if(kickMessage != null) {
 			printLogMessage(kickMessage);
@@ -73,7 +95,7 @@ public class PassthroughConnection extends KillableThread {
 			connected = false;
 			return;
 		}
-		
+
 		if(clientInfo.getUsername() == null || BanList.banned(clientInfo.getUsername())) {
 			if(clientInfo.getUsername() != null) {
 				printLogMessage(clientInfo.getUsername() + " is banned");
@@ -93,21 +115,21 @@ public class PassthroughConnection extends KillableThread {
 		}
 
 		boolean firstConnection = true;
-		
+
 		while(connected && !killed()) {
-			
+
 			String redirectLocal = getRedirect();
 			setRedirect(null);
-			
+
 			if(redirectLocal != null) {
 				clientInfo.setHostname(redirectLocal);
 			}
-			
+
 			printLogMessage("Connecting to: " + clientInfo.getHostname());
-			
+
 			String nextHostname = RedirectManager.getNextHostname(listenHostname, clientInfo.getHostname(), clientInfo.getForward());
 			Integer nextPortnum = RedirectManager.getNextPort(listenHostname, clientInfo.getHostname(), clientInfo.getForward());
-			
+
 			if(nextHostname == null || nextPortnum == null) {
 				printLogMessage("Unable to parse hostname: " + clientInfo.getHostname());
 				PacketFFKick.kick(clientSocket.out, this, this, "Unable to parse hostname: " + clientInfo.getHostname());
@@ -117,7 +139,7 @@ public class PassthroughConnection extends KillableThread {
 				}
 				return;
 			}
-			
+
 			Socket serverBasicSocket = LocalSocket.openSocket(nextHostname, nextPortnum, this);
 			if(serverBasicSocket == null) {
 				printLogMessage("Unable to open connection to backend server");
@@ -134,9 +156,9 @@ public class PassthroughConnection extends KillableThread {
 				PacketFFKick.kickAndClose(clientSocket, this, this, "Unable to connect to backend server");
 				return;
 			}
-			
+
 			Boolean proxyLogin = RedirectManager.isNextProxy(listenHostname, clientInfo.getHostname(), clientInfo.getForward());
-			
+
 			if(proxyLogin == null) {
 				printLogMessage("Unable to determine if next login is a proxy");
 				PacketFFKick.kickAndClose(clientSocket, this, this, "Unable to determine if next login is a proxy");
@@ -145,8 +167,13 @@ public class PassthroughConnection extends KillableThread {
 				}
 				return;
 			}
+
+			if(!Globals.localCache()) {
+				kickMessage = Packet01Login.serverLogin(serverSocket.in, serverSocket.out, this, this, proxyLogin, clientInfo);
+			} else {
+				kickMessage = Packet01Login.bridgingLogin(clientSocket.in, clientSocket.out, serverSocket.in, serverSocket.out, this, this, proxyLogin, clientInfo);
+			}
 			
-			kickMessage = Packet01Login.serverLogin(serverSocket.in, serverSocket.out, this, this, proxyLogin, clientInfo);
 			if(kickMessage != null) {
 				printLogMessage(kickMessage);
 				PacketFFKick.kick(clientSocket.out, this, this, kickMessage);
@@ -155,8 +182,9 @@ public class PassthroughConnection extends KillableThread {
 					ReconnectCache.remove(clientInfo.getUsername());
 				}
 			}
+			
 			if(connected) {
-				
+
 				Packet01Login serverLoginPacket = new Packet01Login(serverSocket.in, this, this);
 
 				if(serverLoginPacket.packetId == null || serverLoginPacket.read(serverSocket.in, this, this, true, null) == null) {
@@ -193,7 +221,7 @@ public class PassthroughConnection extends KillableThread {
 							}
 							clientLoginPacket.setDimension(Globals.getDimension());
 						}
-						
+
 						if(Globals.getSeed() != null) {
 							clientLoginPacket.setMapSeed(Globals.getSeed());
 						} else {
@@ -220,7 +248,7 @@ public class PassthroughConnection extends KillableThread {
 					}
 
 					if(connected) {
-						
+
 						if(!Globals.isQuiet()) {
 							if(clientInfo.getForward()) {
 								printLogMessage("Connection is in forwarding mode");
@@ -228,9 +256,9 @@ public class PassthroughConnection extends KillableThread {
 								printLogMessage("Connection is in proxy/processing mode");
 							}
 						}
-						
+
 						ReconnectCache.store(clientInfo.getUsername(), clientInfo.getHostname() );
-						
+
 						if(clientInfo.getForward()) {
 							serverToClient = new DataStreamBridge(serverSocket.in, clientSocket.out, this);
 							clientToServer = new DataStreamBridge(clientSocket.in, serverSocket.out, this);
@@ -260,6 +288,13 @@ public class PassthroughConnection extends KillableThread {
 								if(killed() || (!(clientToServer.isAlive() && serverToClient.isAlive()))) {
 									clientToServer.interrupt();
 									serverToClient.interrupt();
+									synchronized(hashThreadSyncObject) {
+										if(hashThreads != null) {
+											for(HashThread h : hashThreads) {
+												h.interrupt();
+											}
+										}
+									}
 								}
 							}
 							connected = getRedirect() != null;
@@ -270,6 +305,9 @@ public class PassthroughConnection extends KillableThread {
 
 			printLogMessage("Closing connection to server");
 			LocalSocket.closeSocket(serverSocket.socket, this);
+			synchronized(hashThreadSyncObject) {
+				hashThreads = null;
+			}
 			if(connected) {
 				if(Globals.isVerbose()) {
 					printLogMessage("Reviving thread");
@@ -315,9 +353,9 @@ public class PassthroughConnection extends KillableThread {
 		synchronized(enabledSync) {
 			enabled = true;
 		}
-		
+
 	}
-	
+
 	public void interrupt() {
 		synchronized(enabledSync) {
 			enabled = false;
@@ -335,19 +373,19 @@ public class PassthroughConnection extends KillableThread {
 			this.redirect = redirect;
 		}
 	}
-	
+
 	public String getRedirect() {
 		synchronized(redirectSync) {
 			return(redirect);
 		}
 	}
-	
+
 	public void setHolding(Short holding) {
 		synchronized(holdingSync) {
 			this.holding = holding;
 		}
 	}
-	
+
 	public Short getHolding() {
 		synchronized(holdingSync) {
 			return(holding);

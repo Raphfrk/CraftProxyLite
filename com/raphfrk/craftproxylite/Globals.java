@@ -121,14 +121,24 @@ public class Globals {
 		Globals.varyLocalhost = varyLocalhost;
 	}
 	
-	static private boolean cacheChunks = false;
+	static private boolean compressInfo = false;
 	
-	public synchronized static boolean isChunkCache() {
-		return cacheChunks;
+	public synchronized static boolean compressInfo() {
+		return compressInfo;
 	}
 	
-	public synchronized static void setChunkCache( boolean cacheChunks ) {
-		Globals.cacheChunks = cacheChunks;
+	public synchronized static void setCompressInfo( boolean compressInfo) {
+		Globals.compressInfo = compressInfo;
+	}
+	
+	static private boolean localCache = false;
+	
+	public synchronized static boolean localCache() {
+		return localCache;
+	}
+	
+	public synchronized static void setlocalCache( boolean localCache ) {
+		Globals.localCache = localCache;
 	}
 	
 	static private int defaultPlayerId = 456789012;
