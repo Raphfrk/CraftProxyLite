@@ -35,6 +35,9 @@ public class ProxyListener extends KillableThread {
 			listener.setSoTimeout(1000);
 		} catch (BindException be) {
 			Logging.log( "Unable to bind to port");
+			if(Main.craftGUI != null) {
+				Main.craftGUI.safeSetStatus("<html>Unable to start server <br>Port " + port + " not free<html>");
+			}
 			if( listener != null ) {
 				try {
 					listener.close();
@@ -57,10 +60,14 @@ public class ProxyListener extends KillableThread {
 		} 
 		
 		Logging.log("Server listening on port: " + port);
+		if(Main.craftGUI != null) {
+			Main.craftGUI.safeSetStatus("<html>Server Started<br>Connect to localhost:" + port + "</html>");
+		}
 		
 		while(!killed()) {
-			
+
 			Socket socket = null;
+			
 			try {
 				socket = listener.accept();
 			} catch (SocketTimeoutException ste ) {
@@ -112,10 +119,21 @@ public class ProxyListener extends KillableThread {
 			} else {
 				PassthroughConnection ptc = new PassthroughConnection(socket, defaultHostname,  listenHostname);
 				ptc.start();
+				if(Main.craftGUI != null) {
+					Main.craftGUI.safeSetStatus("Client connected: " + address + "/" + port);
+				}
 				addPassthroughConnection(ptc);
 			}
 			
 			
+		}
+
+		if(listener!=null) {
+			try {
+				listener.close();
+			} catch (IOException ioe) {
+				System.out.println("Unable to close socket");
+			}
 		}
 		
 		interruptConnections();		

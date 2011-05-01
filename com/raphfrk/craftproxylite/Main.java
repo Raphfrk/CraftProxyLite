@@ -10,15 +10,26 @@ public class Main {
 	public static Object sleeper = new Object();
 	static boolean serverEnabled = true;
 
-	static boolean consoleInput = true;
+	public static boolean consoleInput = true;
 
 	public static void main(String[] args, boolean consoleInput) {
 		Main.consoleInput = consoleInput;
 		main(args);
 	}
+	
+	public static CraftProxyGUI craftGUI = null;
 
 	public static void main(String [] args) {
 
+		if(args.length==0 && craftGUI == null) {
+			
+			craftGUI = new CraftProxyGUI();
+			
+			craftGUI.setVisible(true);
+			return;
+			
+		}
+		
 		Logging.log( "Starting Craftproxy-lite version " +  VersionNumbering.version );
 
 		String listenHostname = null;
@@ -130,7 +141,8 @@ public class Main {
 			server.interrupt();
 		} else {
 			Logging.log("[CraftProxy-Lite] Server console disabled");
-			while(true) {
+			boolean enabled = true;
+			while(enabled) {
 				try {
 					synchronized(sleeper) {
 						while(serverEnabled) {
@@ -140,6 +152,7 @@ public class Main {
 				} catch (InterruptedException ie) {
 					ReconnectCache.save();
 					server.interrupt();
+					enabled = false;
 				}
 			}
 		}
@@ -152,6 +165,11 @@ public class Main {
 		}
 		ReconnectCache.save();
 		Logging.flush();
+		
+		if(Main.craftGUI != null) {
+			craftGUI.safeSetStatus("Server Stopped");
+			craftGUI.safeSetButton("Start");
+		}
 
 	}
 
@@ -161,7 +179,7 @@ public class Main {
 
 		synchronized(sleeper) {
 			serverEnabled = false;
-			sleeper.notify();
+			sleeper.notifyAll();
 		}
 
 	}

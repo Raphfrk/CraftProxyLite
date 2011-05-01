@@ -34,6 +34,10 @@ public class PacketFFKick extends Packet {
 	
 	public static String kick(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, String message) {
 		
+		if(Main.craftGUI != null) {
+			Main.craftGUI.safeSetStatus(message);
+		}
+		
 		if(ptc != null && (!ptc.sendingKickMessage())) {
 			return null;
 		}
@@ -56,6 +60,11 @@ public class PacketFFKick extends Packet {
 	}
 	
 	public static String kickAndClose(LocalSocket socket, PassthroughConnection ptc, KillableThread thread, String message) {
+		
+		if(Main.craftGUI != null) {
+			Main.craftGUI.safeSetStatus(message);
+		}
+		
 		boolean fail = false;
 		if(PacketFFKick.kick(socket.out, ptc, thread, message) == null) {
 			fail=true;

@@ -46,7 +46,7 @@ public class UnitChunkData extends UnitIntSizedByteArray{
 			if(Globals.compressInfo()) {
 				ptc.printLogMessage("Recompressed size: " + newLength);
 			}
-
+			
 			return super.write(out, ptc, thread, serverToClient);
 		}
 

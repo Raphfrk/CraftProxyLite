@@ -125,6 +125,14 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		
 		lengthUnit.setValue(newLength);
 		
+		
+		ptc.savedData += length - newLength;
+		
+		if(Main.craftGUI != null) {
+			Main.craftGUI.safeSetStatus("<html>" + ptc.clientInfo.getUsername() + " connected<br>Data saved: " + ptc.savedData/1024 + "kB<html>");
+		}
+
+		
 		return value;
 	}
 	

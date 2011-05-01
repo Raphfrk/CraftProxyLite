@@ -37,6 +37,7 @@ public class PassthroughConnection extends KillableThread {
 	private Object redirectSync = new Object();
 	private String redirect = null;
 
+	public int savedData = 0;
 	public int packetCounter = 0;
 	public int packetCounters[] = new int[256];
 	public int packetLastCounters[] = new int[256];
@@ -255,6 +256,10 @@ public class PassthroughConnection extends KillableThread {
 							} else {
 								printLogMessage("Connection is in proxy/processing mode");
 							}
+						}
+						
+						if(Main.craftGUI != null) {
+							Main.craftGUI.safeSetStatus("<html>" + clientInfo.getUsername() + " connected<br>IP: " + clientInfo.getIP() + "<html>");
 						}
 
 						ReconnectCache.store(clientInfo.getUsername(), clientInfo.getHostname() );
