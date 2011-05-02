@@ -9,6 +9,7 @@ public class ClientInfo {
 	private boolean forward = false;
 	private String hostname;
 	private boolean localCache = false;
+	private int blockSize = 512;
 	
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
@@ -34,6 +35,14 @@ public class ClientInfo {
 		return ip;
 	}
 
+	public void setBlockSize(int blockSize) {
+		this.blockSize = blockSize;
+	}
+	
+	public int getBlockSize() {
+		return blockSize;
+	}
+	
 	public void setPort(int port) {
 		this.port = port;
 	}

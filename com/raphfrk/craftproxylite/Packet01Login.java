@@ -12,6 +12,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Set;
 
 public class Packet01Login extends Packet {
 
@@ -62,10 +63,18 @@ public class Packet01Login extends Packet {
 			return "Client sent bad login packet";
 		}
 		
-		clientLogin.setVersion(Globals.getFakeVersion() + 1);
+		if(Globals.localCache()) {
+			clientLogin.setVersion(Globals.getFakeVersion() + 1);
+		}
 		
 		if(clientLogin.writePacketId(serverOut, ptc, thread, false) == null || clientLogin.write(serverOut, ptc, thread, false) == null) {
 			return "Server rejected client login packet";
+		}
+		
+		if(Globals.localCache()) {
+			if(sendHashBurst(serverOut, ptc, thread, false, ptc.hashCache.getBlockHashList()) == null) {
+				return "Failed to send hash burst";
+			}
 		}
 		
 		return null;
@@ -152,6 +161,9 @@ public class Packet01Login extends Packet {
 		} else if(version == fakeversion + 1 ) {
 			ptc.printLogMessage("Local cache detected for client");
 			clientInfo.setLocalCache(true);
+			if(receiveHashBurst(in, ptc, thread, false) == null) {
+				return "Failed to send hash burst";
+			}
 		} else if(clientLogin.getVersion() != Globals.getClientVersion()) {
 			return "Client attempted to login with incorrect version";
 		}
@@ -254,6 +266,60 @@ public class Packet01Login extends Packet {
 		return null;
 	}
 
+	final static Object success = new Object();
+	
+	static Object sendHashBurst(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, Set<Long> hashes) {
+		
+		UnitInteger size = new UnitInteger();
+		
+		size.setValue(Globals.getBlockSize());
+		
+		if(size.write(out, ptc, thread, serverToClient)==null) {
+			return null;
+		}
+		
+		size.setValue(hashes.size());
+		if(size.write(out, ptc, thread, serverToClient)==null) {
+			return null;
+		}
+		
+		UnitLong hash = new UnitLong();
+		for(Long current : hashes) {
+			hash.setValue(current);
+			if(hash.write(out, ptc, thread, serverToClient)==null) {
+				return null;
+			}
+		}
+		return success;
+	}
+	
+	static Object receiveHashBurst(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
+		
+		UnitInteger size = new UnitInteger();
+		
+		Integer blockSize= size.read(in, ptc, thread, serverToClient, null);
+		if(blockSize ==null) {
+			return null;
+		}
+
+		ptc.clientInfo.setBlockSize(blockSize);
+		
+		Integer sizeValue = size.read(in, ptc, thread, serverToClient, null);
+		if(sizeValue==null) {
+			return null;
+		}
+		
+		UnitLong hash = new UnitLong();
+		for(int cnt=0;cnt<sizeValue;cnt++) {
+			Long hashValue = hash.read(in, ptc, thread, serverToClient, null);
+			if(hashValue == null) {
+				return null;
+			}
+			ptc.hashCache.getHashesFromFile(hashValue, ptc);
+		}
+		
+		return success;
+	}
 
 	static SecureRandom hashGenerator = new SecureRandom();
 

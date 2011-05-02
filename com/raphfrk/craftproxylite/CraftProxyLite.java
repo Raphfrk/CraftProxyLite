@@ -46,7 +46,8 @@ public class CraftProxyLite extends JavaPlugin {
 			    "monitor",
 			    "password",
 			    "reconnectfile",
-			    "banned"
+			    "banned",
+			    "cache_limit"
 		};
 		
 		if( !pluginDirectory.exists() ) {

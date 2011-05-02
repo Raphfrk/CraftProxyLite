@@ -84,11 +84,11 @@ public class ChunkScan {
 			long hash = 0;
 			for(int b=0;b<8;b++) {
 				byte value = buffer[pos++];
-				hash = (hash >> 8)&0x0FFFFFFFFFFFFFFFL;
+				hash = (hash >> 8) & 0x00FFFFFFFFFFFFFFL;
 				hash |= ((long)value)<<56;
 			}
 			hashes[a] = hash;
-		}
+			}
 		
 		return hashes;
 		

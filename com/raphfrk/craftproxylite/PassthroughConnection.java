@@ -48,6 +48,15 @@ public class PassthroughConnection extends KillableThread {
 
 	public HashCache hashCache = new HashCache();
 	public HashSet<Long> setHashes = new HashSet<Long>();
+
+	public int hashBlockSentPos = 0;
+	public long[] hashBlockSent = new long[2048];
+	public HashSet<Long> hashesSentThisConnection = new HashSet<Long>();
+
+	public int hashBlockReceivedPos = 0;
+	public long[] hashBlockReceived = new long[2048];
+	public final byte[][] hashBlockReceivedFull = new byte[2048][];
+	public HashSet<Long> hashesReceivedThisConnection = new HashSet<Long>();
 	
 	public ChunkScan chunkScan = new ChunkScan();
 
@@ -327,6 +336,10 @@ public class PassthroughConnection extends KillableThread {
 
 		printLogMessage("Closing connection to client");
 		LocalSocket.closeSocket(clientSocket.socket, this);
+		
+		if(Globals.localCache()) {
+			HashCache.pruneCache();
+		}
 
 	}
 

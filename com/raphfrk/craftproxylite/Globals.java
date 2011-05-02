@@ -149,10 +149,31 @@ public class Globals {
 		
 	}
 	
+	static private int cacheLimit = 10*1024*1024;
+	
+	public synchronized static int getCacheLimit() {
+		return cacheLimit;
+	}
+	
+	public synchronized static void setCacheLimit( int newCacheLimit ) {
+		cacheLimit = newCacheLimit;
+	}
+	
+	static private int blockSize = 512;
+	
+	public synchronized static int getBlockSize() {
+		return blockSize;
+	}
+	
+	public synchronized static void setBlockSize( int newBlockSize ) {
+		blockSize = newBlockSize;
+	}
+	
+	
 	static private int fakeVersion = 111111;
 	
 	public synchronized static int getFakeVersion() {
-		return fakeVersion;
+		return fakeVersion + clientVersion*2;
 	}
 	
 	public synchronized static void setFakeVersion( int newFakeVersion ) {

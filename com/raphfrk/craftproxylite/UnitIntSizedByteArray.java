@@ -98,10 +98,11 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		
 		int miss = 0;
 		int hit = 0;
+		int blockSize = Globals.getBlockSize();
 		for(int cnt=0;cnt<40;cnt++) {
 			long hash = ptc.hashes[cnt];
 			byte[] cachedHash = ptc.hashCache.getArray(hash);
-			byte[] hashArray;
+			byte[] hashArray = cachedHash;
 			if(cachedHash == null) {
 				miss++;
 				hashArray = new byte[2048];
@@ -111,6 +112,21 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 				hit++;
 				HashThread.transferArray(buffer, 32768, cnt, cachedHash, 0, true);
 			}
+			if(!ptc.hashesReceivedThisConnection.contains(hash)) {
+				int ptcPos = ptc.hashBlockReceivedPos;
+				ptc.hashesReceivedThisConnection.add(hash);
+				ptc.hashBlockReceived[ptcPos] = hash;
+				ptc.hashBlockReceivedFull[ptcPos] = hashArray;
+				ptcPos++;
+				if(ptcPos == blockSize) {
+					ptcPos = 0;
+					ptc.hashCache.saveHashBlockToDisk(ptc.hashBlockReceived, ptc.hashBlockReceivedFull, blockSize, false);
+				}
+				ptc.hashBlockReceivedPos = ptcPos;
+			}
+			
+			
+			
 		}
 		
 		if(Globals.compressInfo()) {
@@ -125,11 +141,11 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		
 		lengthUnit.setValue(newLength);
 		
-		
-		ptc.savedData += length - newLength;
+		ptc.savedData += newLength - length;
 		
 		if(Main.craftGUI != null) {
-			Main.craftGUI.safeSetStatus("<html>" + ptc.clientInfo.getUsername() + " connected<br>Data saved: " + ptc.savedData/1024 + "kB<html>");
+			int percent = (100*ptc.savedData) / (ptc.packetCounter); 
+			Main.craftGUI.safeSetStatus("<html>" + ptc.clientInfo.getUsername() + " connected<br>Data saved: " + ptc.savedData/1024 + "kB  (" + percent + " %reduction)<html>");
 		}
 
 		
@@ -144,14 +160,11 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			return null;
 		}
 
-		incrementCounter(serverToClient, length, ptc);
+		incrementCounter(serverToClient, Math.abs(length), ptc);
 		
 		while(true) {
 			try {
-				if(length < 0) {
-					length = -length;
-				}
-				out.write(value, 0, length);
+				out.write(value, 0, Math.abs(length));
 				out.flush();
 			} catch ( SocketTimeoutException toe ) {
 				if(timedOut(thread)) {

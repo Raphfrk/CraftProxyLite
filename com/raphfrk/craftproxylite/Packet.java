@@ -68,18 +68,18 @@ public class Packet extends ProtocolUnit {
 		packetInfo[0x26] = new ProtocolUnit[] {unitEntity, unitByte};
 		packetInfo[0x27] = new ProtocolUnit[] {unitEntity, unitEntity};
 		packetInfo[0x28] = new ProtocolUnit[] {unitEntity, unitMetaStream};
-				
+
 		packetInfo[0x32] = new ProtocolUnit[] {unitInt, unitInt, unitBoolean};
 		packetInfo[0x33] = new ProtocolUnit[] {unitInt, unitShort, unitInt, unitByte, unitByte, unitByte, unitChunkData};
 		packetInfo[0x34] = new ProtocolUnit[] {new UnitFixed(8), unitShortSizedQuadByteArray};
 		packetInfo[0x35] = new ProtocolUnit[] {new UnitFixed(11)};
 		packetInfo[0x36] = new ProtocolUnit[] {new UnitFixed(12)};
 		packetInfo[0x3C] = new ProtocolUnit[] {new UnitFixed(28), unitIntSizedTripleByteArray};
-		
+
 		packetInfo[0x46] = new ProtocolUnit[] {unitByte};
-		
+
 		packetInfo[0x47] = new ProtocolUnit[] {unitEntity, new UnitFixed(13)};
-		
+
 		packetInfo[0x64] = new ProtocolUnit[] {unitByte, unitByte, unitString8, unitByte};
 		packetInfo[0x65] = new ProtocolUnit[] {unitByte};
 		packetInfo[0x66] = new ProtocolUnit[] {new UnitFixed(7), unitItemStack};
@@ -87,19 +87,19 @@ public class Packet extends ProtocolUnit {
 		packetInfo[0x68] = new ProtocolUnit[] {unitByte, unitShortSizedItemStackArray};
 		packetInfo[0x69] = new ProtocolUnit[] {new UnitFixed(5)};
 		packetInfo[0x6A] = new ProtocolUnit[] {new UnitFixed(4)};
-		
+
 		packetInfo[0x82] = new ProtocolUnit[] {new UnitFixed(10), unitString, unitString, unitString, unitString};
-		
+
 		packetInfo[0xC8] = new ProtocolUnit[] {new UnitFixed(5)};
-		
+
 		packetInfo[0xFF] = new ProtocolUnit[] {unitString};
 
 		if(true) {
-			
+
 			packetInfo[0x0C] = new ProtocolUnit[] {unitFloat, unitFloat, unitBoolean};
-			
+
 		}
-		
+
 	}
 
 	final Byte packetId;
@@ -138,7 +138,7 @@ public class Packet extends ProtocolUnit {
 		}
 		return true;
 	}
-	
+
 	public Byte writePacketId(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 		return UnitByte.writeByte(out, packetId, ptc, null);
 	}
@@ -186,7 +186,7 @@ public class Packet extends ProtocolUnit {
 	@Override
 	public Packet pass(DataInputStream in, DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, byte[] buffer, DownlinkState linkState) {
 		int oldCounter = ptc.packetCounter;
-		
+
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
 		}
@@ -210,7 +210,7 @@ public class Packet extends ProtocolUnit {
 				}
 			}
 		}
-		
+
 		int newCounter = ptc.packetCounter;
 		if(packetId != null) {
 			ptc.packetCounters[packetId & 0xFF] += newCounter - oldCounter;
@@ -229,14 +229,23 @@ public class Packet extends ProtocolUnit {
 				Integer z = (Integer)fields[1].getValue();
 				Boolean mode = (Boolean)fields[2].getValue();
 				if(mode) {
+					if(linkState.contains(x, z)) {
+						System.out.println("Chunk " + x + " " + z + " added " + linkState.contains(x, z));
+					}
 					linkState.addChunk(x, z);
 				} else {
+					if(!linkState.contains(x, z)) {
+						System.out.println("Chunk " + x + " " + z + " removed " + linkState.contains(x, z));
+					}
 					linkState.removeChunk(x, z);
 				}
 			} else if (packetId == 0x33) {
 				Integer x = ((Integer)fields[0].getValue()) >> 4;
-				Integer z = ((Integer)fields[2].getValue()) >> 4;
-				linkState.addChunk(x, z);
+		Integer z = ((Integer)fields[2].getValue()) >> 4;
+		if(!linkState.contains(x, z)) {
+			System.out.println("Chunk " + x + " " + z + " updated " + linkState.contains(x, z));
+		}
+		linkState.addChunk(x, z);
 			}
 		}
 	}

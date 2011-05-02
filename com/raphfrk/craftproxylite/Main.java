@@ -1,6 +1,7 @@
 package com.raphfrk.craftproxylite;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -18,6 +19,8 @@ public class Main {
 	}
 	
 	public static CraftProxyGUI craftGUI = null;
+	
+	public static File cacheDir = new File("CPL_cache");
 
 	public static void main(String [] args) {
 
@@ -53,10 +56,12 @@ public class Main {
 			Logging.log("    monitor <period ms>   Enables bandwidth use logging");
 			Logging.log("    compress_info         Outputs info related to the compression/cache system");
 			Logging.log("    local_cache           Puts the proxy in local cache mode");
+			Logging.log("    cache_limit           Sets the max size of the cache");
 			Logging.log("    quiet:                Reduces logging");
 			Logging.log("    disable_flood:        Disables flood protection");
 			Logging.log("    info:                 Gives more information");
 			Logging.log("    debug:                Gives debug info");
+			
 					
 					
 			if(consoleInput) {
@@ -81,6 +86,7 @@ public class Main {
 					else if( args[pos].equals("password"))     { Globals.setPassword(args[pos+1]); pos++;}
 					else if( args[pos].equals("quiet"))          Globals.setQuiet(true);
 					else if( args[pos].equals("disable_flood")) Globals.setFlood(false);
+					else if( args[pos].equals("cache_limit"))   { Globals.setCacheLimit(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("reconnectfile")){ ReconnectCache.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("banned"))       { BanList.init(args[pos+1]); pos++;}
 					else if( args[pos].equals("local_cache"))  { Globals.setlocalCache(true); }
@@ -116,6 +122,8 @@ public class Main {
 			Logging.log( "WARNING: reconnectfile parameter not set");
 			Logging.log( "WARNING: players will be connected to the default server regardless of last server connected to");
 		}
+		
+		cacheDir.mkdirs();
 
 		Logging.log( "Use \"end\" to stop the server");
 
