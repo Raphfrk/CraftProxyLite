@@ -1,5 +1,6 @@
 package com.raphfrk.craftproxylite;
 
+import java.awt.Container;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -114,7 +115,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			}
 			if(!ptc.hashesReceivedThisConnection.contains(hash)) {
 				int ptcPos = ptc.hashBlockReceivedPos;
-				ptc.hashesReceivedThisConnection.add(hash);
+				ptc.hashesReceivedThisConnection.put(hash, true);
 				ptc.hashBlockReceived[ptcPos] = hash;
 				ptc.hashBlockReceivedFull[ptcPos] = hashArray;
 				ptcPos++;
@@ -141,11 +142,11 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		
 		lengthUnit.setValue(newLength);
 		
-		ptc.savedData += newLength - length;
+		int saved = ptc.savedData.addAndGet(newLength - length);
 		
 		if(Main.craftGUI != null) {
-			int percent = (100*ptc.savedData) / (ptc.packetCounter); 
-			Main.craftGUI.safeSetStatus("<html>" + ptc.clientInfo.getUsername() + " connected<br>Data saved: " + ptc.savedData/1024 + "kB  (" + percent + " %reduction)<html>");
+			int percent = (100*saved) / (ptc.packetCounter); 
+			Main.craftGUI.safeSetStatus("<html>" + ptc.clientInfo.getUsername() + " connected<br>Data saved: " + saved/1024 + "kB  (" + percent + " %reduction)<html>");
 		}
 
 		

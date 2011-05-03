@@ -64,6 +64,8 @@ public class DataStreamUpLinkBridge extends KillableThread {
 						continue;
 					}
 				}
+				
+				ptc.savedData.addAndGet(-length.getValue()*8);
 			}
 
 			Byte packetId = UnitByte.getByte(in, ptc, this);

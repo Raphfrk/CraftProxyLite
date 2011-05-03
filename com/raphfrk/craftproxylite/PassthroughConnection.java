@@ -6,7 +6,9 @@ import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PassthroughConnection extends KillableThread {
 
@@ -38,7 +40,7 @@ public class PassthroughConnection extends KillableThread {
 	private Object redirectSync = new Object();
 	private String redirect = null;
 
-	public int savedData = 0;
+	public AtomicInteger savedData = new AtomicInteger(0);
 	public int packetCounter = 0;
 	public int packetCounters[] = new int[256];
 	public int packetLastCounters[] = new int[256];
@@ -55,7 +57,7 @@ public class PassthroughConnection extends KillableThread {
 	public int hashBlockReceivedPos = 0;
 	public long[] hashBlockReceived = new long[2048];
 	public final byte[][] hashBlockReceivedFull = new byte[2048][];
-	public HashSet<Long> hashesReceivedThisConnection = new HashSet<Long>();
+	public ConcurrentHashMap<Long,Boolean> hashesReceivedThisConnection;
 	
 	public ChunkScan chunkScan = new ChunkScan();
 

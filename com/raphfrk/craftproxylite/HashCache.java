@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -80,6 +81,7 @@ public class HashCache {
 	public HashCache(PassthroughConnection ptc) {
 		
 		ptc.hashQueue = new ConcurrentLinkedQueue<Long>();
+		
 		if(!Main.cacheDir.isDirectory()) {
 			return;
 		}
@@ -94,6 +96,7 @@ public class HashCache {
 		for(File file : files) {
 			readSingleFile(file, false, ptc);
 		}
+		ptc.hashesReceivedThisConnection = new ConcurrentHashMap<Long,Boolean>();
 	}
 
 	public Set<Long> getBlockHashList() {
@@ -146,7 +149,9 @@ public class HashCache {
 
 				for(int cnt=0;cnt<blockSize;cnt++) {
 					hashes[cnt] = inData.readLong();
-					ptc.hashQueue.offer(hashes[cnt]);
+					if(ptc.hashesReceivedThisConnection != null && !ptc.hashesReceivedThisConnection.containsKey(hashes[cnt])) {
+						ptc.hashQueue.offer(hashes[cnt]);
+					}
 				}
 
 				if(all) {
