@@ -2,6 +2,7 @@ package com.raphfrk.craftproxylite;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.util.LinkedList;
 
 public class DataStreamDownLinkBridge extends KillableThread {
 
@@ -113,42 +114,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 					kickPacket.write(out, ptc, this, true);
 				}
 
-			} /*else if(packetId == 0x32){
-
-				Packet currentPacket = new Packet(packetId);
-
-				Packet value = currentPacket.read(in, ptc, this, true, linkState);
-				if(value != null) {
-					Integer x = (Integer)currentPacket.fields[0].getValue();
-					Integer z = (Integer)currentPacket.fields[1].getValue();
-					Boolean mode = (Boolean)currentPacket.fields[2].getValue();
-					if(mode) {
-						if(linkState.contains(x, z)) {
-							System.out.println("Chunk " + x + " " + z + " added, but it already was loaded, skipping");
-							continue;
-						}
-					} else {
-						if(linkState.contains(x, z)) {
-							System.out.println("Chunk " + x + " " + z + " removed, but it was not loaded, skipping");
-							continue;
-						}
-					} 
-
-					if(UnitByte.writeByte(out, packetId, ptc, this) == null) {
-						if(!Globals.isQuiet()) {
-							ptc.printLogMessage("Unable to write packet id");
-						}
-						eof = true;
-						continue;
-					}
-					value = currentPacket.write(out, ptc, this, true);
-				} else {
-					ptc.printLogMessage("Unable to read 0x32 packet");
-					eof = true;
-					continue;
-				}
-
-			} else */{
+			} else {
 
 				if(UnitByte.writeByte(out, packetId, ptc, this) == null) {
 					if(!Globals.isQuiet()) {
@@ -183,6 +149,43 @@ public class DataStreamDownLinkBridge extends KillableThread {
 		ptc.interrupt();
 
 	}
+	
+	/*else if(packetId == 0x32){
+
+	Packet currentPacket = new Packet(packetId);
+
+	Packet value = currentPacket.read(in, ptc, this, true, linkState);
+	if(value != null) {
+		Integer x = (Integer)currentPacket.fields[0].getValue();
+		Integer z = (Integer)currentPacket.fields[1].getValue();
+		Boolean mode = (Boolean)currentPacket.fields[2].getValue();
+		if(mode) {
+			if(linkState.contains(x, z)) {
+				System.out.println("Chunk " + x + " " + z + " added, but it already was loaded, skipping");
+				continue;
+			}
+		} else {
+			if(linkState.contains(x, z)) {
+				System.out.println("Chunk " + x + " " + z + " removed, but it was not loaded, skipping");
+				continue;
+			}
+		} 
+
+		if(UnitByte.writeByte(out, packetId, ptc, this) == null) {
+			if(!Globals.isQuiet()) {
+				ptc.printLogMessage("Unable to write packet id");
+			}
+			eof = true;
+			continue;
+		}
+		value = currentPacket.write(out, ptc, this, true);
+	} else {
+		ptc.printLogMessage("Unable to read 0x32 packet");
+		eof = true;
+		continue;
+	}
+
+} */
 
 	boolean destroyEntities() {
 		for( Integer entityId : linkState.entityIds ) {

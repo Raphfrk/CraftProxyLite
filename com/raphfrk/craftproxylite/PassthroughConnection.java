@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PassthroughConnection extends KillableThread {
 
@@ -46,13 +47,11 @@ public class PassthroughConnection extends KillableThread {
 	public HashThread[] hashThreads = null;
 	public long[] hashes = new long[40];
 
-	public HashCache hashCache = new HashCache();
+	public HashCache hashCache = new HashCache(this);
 	public HashSet<Long> setHashes = new HashSet<Long>();
 
-	public int hashBlockSentPos = 0;
-	public long[] hashBlockSent = new long[2048];
-	public HashSet<Long> hashesSentThisConnection = new HashSet<Long>();
-
+	public ConcurrentLinkedQueue<Long> hashQueue;
+	
 	public int hashBlockReceivedPos = 0;
 	public long[] hashBlockReceived = new long[2048];
 	public final byte[][] hashBlockReceivedFull = new byte[2048][];
@@ -86,7 +85,7 @@ public class PassthroughConnection extends KillableThread {
 
 		String kickMessage = null;;
 
-		if(Globals.localCache()) {
+		if(Globals.localCache() || Globals.bridgingConnection()) {
 			Packet02Handshake initialHandshake = new Packet02Handshake(clientSocket.in, this, this);
 			
 			if(initialHandshake.packetId == null || initialHandshake.read(clientSocket.in, this, this, true, null) == null) {
@@ -178,7 +177,7 @@ public class PassthroughConnection extends KillableThread {
 				return;
 			}
 
-			if(!Globals.localCache()) {
+			if(!Globals.localCache() && !Globals.bridgingConnection()) {
 				kickMessage = Packet01Login.serverLogin(serverSocket.in, serverSocket.out, this, this, proxyLogin, clientInfo);
 			} else {
 				kickMessage = Packet01Login.bridgingLogin(clientSocket.in, clientSocket.out, serverSocket.in, serverSocket.out, this, this, proxyLogin, clientInfo);

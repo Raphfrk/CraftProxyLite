@@ -59,7 +59,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		border = new TitledBorder("Local Server Name");
 		localServerName.setBorder(border);
 		
-		localServerPortnum = new JTextField("20001", 6);
+		localServerPortnum = new JTextField("25565", 6);
 		border = new TitledBorder("Port");
 		localServerPortnum.setBorder(border);
 		
@@ -155,7 +155,8 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 								localServer,
 								distantServer,
 								"local_cache",
-								"quiet"
+								"quiet",
+								"bridge_connection"
 						};
 						
 						Main.main(args, false);

@@ -101,7 +101,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		int blockSize = Globals.getBlockSize();
 		for(int cnt=0;cnt<40;cnt++) {
 			long hash = ptc.hashes[cnt];
-			byte[] cachedHash = ptc.hashCache.getArray(hash);
+			byte[] cachedHash = ptc.hashCache.getArray(hash, 0, ptc);
 			byte[] hashArray = cachedHash;
 			if(cachedHash == null) {
 				miss++;

@@ -32,6 +32,7 @@ public class CraftProxyLite extends JavaPlugin {
 		String singleOptions[] = new String[] {
 			    "auth_off",
 			    "staticlocalhost",
+			    "bridge_connection",
 			    "quiet",
 			    "info",
 			    "debug",
@@ -70,7 +71,7 @@ public class CraftProxyLite extends JavaPlugin {
 		args.add(pf.getString("default_server", "25565"));
 		
 		for(String current : singleOptions) {
-			Boolean temp = current.equals("quiet") || current.equals("staticlocalhost");
+			Boolean temp = current.equals("bridge_connection") || current.equals("quiet") || current.equals("staticlocalhost");
 
 			temp = pf.getBoolean(current, temp);
 			if(temp) {

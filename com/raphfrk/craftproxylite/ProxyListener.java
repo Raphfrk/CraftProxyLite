@@ -12,21 +12,21 @@ import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProxyListener extends KillableThread {
-	
+
 	private final int port;
 	private final String listenHostname;
 	private final String defaultHostname;
-	
+
 	LinkedList<PassthroughConnection> connections = new LinkedList<PassthroughConnection>();
-	
+
 	ProxyListener(String listenHostname, String defaultHostname) {
 		this.port = RedirectManager.getPort(listenHostname);
 		this.listenHostname = listenHostname;
 		this.defaultHostname = defaultHostname;
 	}
-	
+
 	ConcurrentHashMap<String,Long> lastLogin = new ConcurrentHashMap<String,Long>();
-	
+
 	@Override
 	public void run() {
 		ServerSocket listener = null;
@@ -58,16 +58,20 @@ public class ProxyListener extends KillableThread {
 			}
 			return;
 		} 
-		
+
 		Logging.log("Server listening on port: " + port);
 		if(Main.craftGUI != null) {
 			Main.craftGUI.safeSetStatus("<html>Server Started<br>Connect to localhost:" + port + "</html>");
 		}
-		
+
 		while(!killed()) {
+			
+			if(this.isInterrupted()) {
+				kill();
+			}
 
 			Socket socket = null;
-			
+
 			try {
 				socket = listener.accept();
 			} catch (SocketTimeoutException ste ) {
@@ -83,7 +87,7 @@ public class ProxyListener extends KillableThread {
 			if(socket == null) {
 				continue;
 			}
-			
+
 			try {
 				socket.setSoTimeout(1000);
 			} catch (SocketException e) {
@@ -96,9 +100,9 @@ public class ProxyListener extends KillableThread {
 					}
 					continue;
 				}
-				
+
 			}
-			
+
 			String address = socket.getInetAddress().getHostAddress().toString();
 			int port = socket.getPort();
 			Logging.log("Connection from " + address + "/" + port);
@@ -117,15 +121,20 @@ public class ProxyListener extends KillableThread {
 					Logging.log("Exception when closing connection");
 				}
 			} else {
-				PassthroughConnection ptc = new PassthroughConnection(socket, defaultHostname,  listenHostname);
-				ptc.start();
-				if(Main.craftGUI != null) {
-					Main.craftGUI.safeSetStatus("Client connected: " + address + "/" + port);
+				try {
+					PassthroughConnection ptc = new PassthroughConnection(socket, defaultHostname,  listenHostname);
+					ptc.start();
+					if(Main.craftGUI != null) {
+						Main.craftGUI.safeSetStatus("Client connected: " + address + "/" + port);
+					}
+					addPassthroughConnection(ptc);
+				} catch (Exception e) {
+					kill();
+					e.printStackTrace();
 				}
-				addPassthroughConnection(ptc);
 			}
-			
-			
+
+
 		}
 
 		if(listener!=null) {
@@ -135,26 +144,26 @@ public class ProxyListener extends KillableThread {
 				System.out.println("Unable to close socket");
 			}
 		}
-		
+
 		interruptConnections();		
-		
+
 	}
-	
+
 	void addPassthroughConnection(PassthroughConnection ptc) {
 		Iterator<PassthroughConnection> itr = connections.iterator();
-		
+
 		while(itr.hasNext()) {
 			if(!itr.next().isAlive()) {
 				itr.remove();
 			}
 		}
-		
+
 		connections.add(ptc);
 	}
-	
+
 	void interruptConnections() {
 		Iterator<PassthroughConnection> itr = connections.iterator();
-		
+
 		while(itr.hasNext()) {
 			PassthroughConnection ptc = itr.next();
 			ptc.interrupt();

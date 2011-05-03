@@ -141,6 +141,16 @@ public class Globals {
 		Globals.localCache = localCache;
 	}
 	
+	static boolean bridgingConnection = false;
+	
+	static public boolean bridgingConnection() {
+		return bridgingConnection;
+	}
+	
+	static public void setBridgingConnection(boolean bridgingConnection) {
+		Globals.bridgingConnection = bridgingConnection;
+	}
+	
 	static private int defaultPlayerId = 456789012;
 		
 	public synchronized static int getDefaultPlayerId() {

@@ -56,6 +56,7 @@ public class Main {
 			Logging.log("    monitor <period ms>   Enables bandwidth use logging");
 			Logging.log("    compress_info         Outputs info related to the compression/cache system");
 			Logging.log("    local_cache           Puts the proxy in local cache mode");
+			Logging.log("    bridge_connection     Authentication is handled by backend server");
 			Logging.log("    cache_limit           Sets the max size of the cache");
 			Logging.log("    quiet:                Reduces logging");
 			Logging.log("    disable_flood:        Disables flood protection");
@@ -82,6 +83,7 @@ public class Main {
 					else if( args[pos].equals("staticlocalhost"))  Globals.setVaryLocalhost(false);
 					else if( args[pos].equals("rotatelocalhost"))  Globals.setVaryLocalhost(true);
 					else if( args[pos].equals("debug"))          Globals.setDebug(true);
+					else if( args[pos].equals("bridge_connection")) Globals.setBridgingConnection(true);
 					else if( args[pos].equals("clientversion")){ Globals.setClientVersion(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("password"))     { Globals.setPassword(args[pos+1]); pos++;}
 					else if( args[pos].equals("quiet"))          Globals.setQuiet(true);

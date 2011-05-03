@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -46,7 +47,10 @@ public class HashCache {
 		return a;
 	}
 
-	public byte[] getArray(long hash) {
+	public byte[] getArray(long hash, int recursions, PassthroughConnection ptc) {
+		if(recursions > 2) {
+			return null;
+		}
 		Reference<byte[]> soft = cache.get(hash);
 		byte[] array;
 		if(soft != null) {
@@ -59,8 +63,8 @@ public class HashCache {
 		}
 		File temp;
 		if(array == null && (temp = FAT.get(hash)) != null && temp.exists()) {
-			if(readSingleFile(temp, true)) {
-				return getArray(hash);
+			if(readSingleFile(temp, true, ptc)) {
+				return getArray(hash, recursions + 1, ptc);
 			} else {
 				return null;
 			}
@@ -73,7 +77,9 @@ public class HashCache {
 		return FAT.containsKey(hash);
 	}
 
-	public HashCache() {
+	public HashCache(PassthroughConnection ptc) {
+		
+		ptc.hashQueue = new ConcurrentLinkedQueue<Long>();
 		if(!Main.cacheDir.isDirectory()) {
 			return;
 		}
@@ -86,7 +92,7 @@ public class HashCache {
 		}
 
 		for(File file : files) {
-			readSingleFile(file, false);
+			readSingleFile(file, false, ptc);
 		}
 	}
 
@@ -104,7 +110,7 @@ public class HashCache {
 		return null;
 	}
 
-	public boolean readSingleFile(File file, boolean all) {
+	public boolean readSingleFile(File file, boolean all, PassthroughConnection ptc) {
 
 		FileInputStream in;
 		try {
@@ -140,6 +146,7 @@ public class HashCache {
 
 				for(int cnt=0;cnt<blockSize;cnt++) {
 					hashes[cnt] = inData.readLong();
+					ptc.hashQueue.offer(hashes[cnt]);
 				}
 
 				if(all) {

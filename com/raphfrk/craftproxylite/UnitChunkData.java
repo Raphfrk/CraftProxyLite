@@ -26,24 +26,11 @@ public class UnitChunkData extends UnitIntSizedByteArray{
 
 			chunkScan.generateHashes(ptc, buffer);
 
-			int blockSize = ptc.clientInfo.getBlockSize();
 			boolean[] matches = new boolean[40];
 			for(int cnt=0;cnt<40;cnt++) {
 				Long hash = ptc.hashes[cnt];
 				matches[cnt] = ptc.setHashes.contains(hash);
 				ptc.setHashes.add(hash);
-				
-				if(!ptc.hashesSentThisConnection.contains(hash)) {
-					int ptcPos = ptc.hashBlockSentPos;
-					ptc.hashesSentThisConnection.add(hash);
-					ptc.hashBlockSent[ptcPos] = hash;
-					ptcPos++;
-					if(ptcPos == blockSize) {
-						ptcPos = 0;
-						ptc.hashCache.saveHashBlockToDisk(ptc.hashBlockSent, null, blockSize, true);
-					}
-					ptc.hashBlockSentPos = ptcPos;
-				}
 			}
 			
 			chunkScan.wipeBuffer(ptc, buffer, matches);
