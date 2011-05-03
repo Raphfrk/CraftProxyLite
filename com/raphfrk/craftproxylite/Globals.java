@@ -159,7 +159,7 @@ public class Globals {
 		
 	}
 	
-	static private int cacheLimit = 10*1024*1024;
+	static private int cacheLimit = 48*1024*1024;
 	
 	public synchronized static int getCacheLimit() {
 		return cacheLimit;
