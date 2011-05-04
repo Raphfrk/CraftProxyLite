@@ -113,7 +113,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 				hit++;
 				HashThread.transferArray(buffer, 32768, cnt, cachedHash, 0, true);
 			}
-			if(!ptc.hashesReceivedThisConnection.contains(hash)) {
+			if(!ptc.hashesReceivedThisConnection.containsKey(hash)) {
 				int ptcPos = ptc.hashBlockReceivedPos;
 				ptc.hashesReceivedThisConnection.put(hash, true);
 				ptc.hashBlockReceived[ptcPos] = hash;

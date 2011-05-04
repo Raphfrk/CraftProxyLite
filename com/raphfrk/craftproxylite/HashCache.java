@@ -25,10 +25,10 @@ public class HashCache {
 	final static byte[] empty = new byte[0];
 
 	// contains the file location for all known hashes
-	static HashMap<Long,File> FAT = new HashMap<Long,File>();
+	HashMap<Long,File> FAT = new HashMap<Long,File>();
 
 	// contains full data for the current connection
-	static HashMap<Long,Reference<byte[]>> cache = new HashMap<Long,Reference<byte[]>>();
+	HashMap<Long,Reference<byte[]>> cache = new HashMap<Long,Reference<byte[]>>();
 
 	// Contains only blocks which has associated data linked
 	LinkedHashMap<Long,long[]> blockHashList = new LinkedHashMap<Long,long[]>();
@@ -63,6 +63,7 @@ public class HashCache {
 			array = null;
 		}
 		File temp;
+		
 		if(array == null && (temp = FAT.get(hash)) != null && temp.exists()) {
 			if(readSingleFile(temp, true, ptc)) {
 				return getArray(hash, recursions + 1, ptc);
@@ -80,8 +81,6 @@ public class HashCache {
 
 	public HashCache(PassthroughConnection ptc) {
 		
-		System.out.println("loading files from disk");
-		
 		ptc.hashQueue = new ConcurrentLinkedQueue<Long>();
 		
 		if(!Main.cacheDir.isDirectory()) {
@@ -98,7 +97,9 @@ public class HashCache {
 		for(File file : files) {
 			readSingleFile(file, false, ptc);
 		}
+		
 		ptc.hashesReceivedThisConnection = new ConcurrentHashMap<Long,Boolean>();
+		ptc.hashesSentThisConnection = new ConcurrentHashMap<Long,Boolean>();
 	}
 
 	public Set<Long> getBlockHashList() {
@@ -116,7 +117,7 @@ public class HashCache {
 	}
 
 	public boolean readSingleFile(File file, boolean all, PassthroughConnection ptc) {
-
+		
 		FileInputStream in;
 		try {
 			in = new FileInputStream(file);
@@ -151,7 +152,7 @@ public class HashCache {
 
 				for(int cnt=0;cnt<blockSize;cnt++) {
 					hashes[cnt] = inData.readLong();
-					if(ptc.hashesReceivedThisConnection != null && !ptc.hashesReceivedThisConnection.containsKey(hashes[cnt])) {
+					if(all && ptc.hashesSentThisConnection != null && !ptc.hashesSentThisConnection.containsKey(hashes[cnt])) {
 						ptc.hashQueue.offer(hashes[cnt]);
 					}
 				}
@@ -209,12 +210,6 @@ public class HashCache {
 				}
 			}
 		}
-
-		//if(all) {
-		//	System.out.println("Read " + requiredUpdates + " hashes worth of data from: " + file.getName());
-		//} else {
-		//	System.out.println("Read header from: " + file.getName());
-		//}
 
 		return true;
 

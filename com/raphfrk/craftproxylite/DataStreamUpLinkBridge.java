@@ -2,6 +2,7 @@ package com.raphfrk.craftproxylite;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 public class DataStreamUpLinkBridge extends KillableThread {
@@ -45,6 +46,7 @@ public class DataStreamUpLinkBridge extends KillableThread {
 
 				while((hash = ptc.hashQueue.poll()) != null && synced.size() < 2048) {
 					synced.add(hash);
+					ptc.hashesSentThisConnection.put(hash, true);
 				}
 
 				UnitShort length = new UnitShort();
@@ -56,7 +58,7 @@ public class DataStreamUpLinkBridge extends KillableThread {
 				}
 
 				UnitLong hashUnit = new UnitLong();
-				
+
 				while((hash = synced.poll()) != null) {
 					hashUnit.setValue(hash);
 					if(hashUnit.write(out, ptc, this, false) == null) {
@@ -64,7 +66,7 @@ public class DataStreamUpLinkBridge extends KillableThread {
 						continue;
 					}
 				}
-				
+
 				ptc.savedData.addAndGet(-length.getValue()*8);
 			}
 

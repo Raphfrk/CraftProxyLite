@@ -58,6 +58,8 @@ public class PassthroughConnection extends KillableThread {
 	public long[] hashBlockReceived = new long[2048];
 	public final byte[][] hashBlockReceivedFull = new byte[2048][];
 	public ConcurrentHashMap<Long,Boolean> hashesReceivedThisConnection;
+	public ConcurrentHashMap<Long,Boolean> hashesSentThisConnection;
+	
 	
 	public ChunkScan chunkScan = new ChunkScan();
 

@@ -1,6 +1,7 @@
 package com.raphfrk.craftproxylite;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -51,15 +52,19 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		int listenPort = pf.getInt("listen_port", 25565);
 
 		setTitle("CraftProxyLite Local Cache Mode");
-		setSize(375,200);
+		setSize(375,250);
 		setLocation(40,150);
 
 
 		topPanel.setLayout(new BorderLayout());
+		topPanel.setBorder(new TitledBorder("Remote Server"));
+		topPanel.setBackground(Color.WHITE);
 		secondPanel.setLayout(new BorderLayout());
+		secondPanel.setBorder(new TitledBorder("Local Server"));
+		secondPanel.setBackground(Color.WHITE);
 
 		serverName = new JTextField(defaultHostname, 20);
-		TitledBorder border = new TitledBorder("Server Name");
+		TitledBorder border = new TitledBorder("Name");
 		serverName.setBorder(border);
 		serverName.addActionListener(this);
 
@@ -69,7 +74,8 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		portNum.addActionListener(this);
 
 		localServerName = new JLabel("localhost");
-		border = new TitledBorder("Local Server Name");
+		localServerName.setBackground(Color.GRAY);
+		border = new TitledBorder("Name");
 		localServerName.setBorder(border);
 
 		localServerPortnum = new JTextField(Integer.toString(listenPort), 6);
