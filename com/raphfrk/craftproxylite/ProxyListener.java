@@ -34,7 +34,12 @@ public class ProxyListener extends KillableThread {
 			listener = new ServerSocket(port);
 			listener.setSoTimeout(1000);
 		} catch (BindException be) {
-			Logging.log( "Unable to bind to port");
+			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
+			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
+			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
+			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
+			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
+			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
 			if(Main.craftGUI != null) {
 				Main.craftGUI.safeSetStatus("<html>Unable to start server <br>Port " + port + " not free<html>");
 			}
@@ -45,6 +50,8 @@ public class ProxyListener extends KillableThread {
 					Logging.log( "Unable to close connection");
 				}
 			}
+			kill();
+			interruptConnections();
 			return;
 		} catch (IOException ioe) {
 			Logging.log("Unknown error");	

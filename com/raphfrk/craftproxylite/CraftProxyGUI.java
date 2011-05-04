@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.logging.Level;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -46,7 +47,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		pf.load();
 		
 		String defaultHostname = pf.getString("connect_hostname", "localhost");
-		int defaultPort = pf.getInt("connect_port", 25565);
+		int defaultPort = pf.getInt("connect_port", 20000);
 		int listenPort = pf.getInt("listen_port", 25565);
 
 		setTitle("CraftProxyLite Local Cache Mode");
