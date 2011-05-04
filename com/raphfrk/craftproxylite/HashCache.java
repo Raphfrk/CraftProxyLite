@@ -80,6 +80,8 @@ public class HashCache {
 
 	public HashCache(PassthroughConnection ptc) {
 		
+		System.out.println("loading files from disk");
+		
 		ptc.hashQueue = new ConcurrentLinkedQueue<Long>();
 		
 		if(!Main.cacheDir.isDirectory()) {

@@ -10,6 +10,7 @@ import java.net.SocketTimeoutException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProxyListener extends KillableThread {
 
@@ -26,9 +27,10 @@ public class ProxyListener extends KillableThread {
 	}
 
 	ConcurrentHashMap<String,Long> lastLogin = new ConcurrentHashMap<String,Long>();
-
+	
 	@Override
 	public void run() {
+		
 		ServerSocket listener = null;
 		try {
 			listener = new ServerSocket(port);
@@ -74,6 +76,7 @@ public class ProxyListener extends KillableThread {
 		while(!killed()) {
 			
 			if(this.isInterrupted()) {
+				System.out.println("Interrupted");
 				kill();
 			}
 
@@ -143,6 +146,8 @@ public class ProxyListener extends KillableThread {
 
 
 		}
+		
+		System.out.println("About to close listener " + listener);
 
 		if(listener!=null) {
 			try {

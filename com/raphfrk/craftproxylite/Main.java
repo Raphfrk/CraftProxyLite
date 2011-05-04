@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 public class Main {
 
 	public static Object sleeper = new Object();
-	static boolean serverEnabled = true;
 
 	public static boolean consoleInput = true;
 
@@ -21,6 +20,8 @@ public class Main {
 	public static CraftProxyGUI craftGUI = null;
 	
 	public static File cacheDir = new File("CPL_cache");
+	
+	static ProxyListener server = null;
 
 	public static void main(String [] args) {
 
@@ -129,7 +130,7 @@ public class Main {
 
 		Logging.log( "Use \"end\" to stop the server");
 
-		ProxyListener server = new ProxyListener( listenHostname, defaultHostname );
+		server = new ProxyListener( listenHostname, defaultHostname );
 
 		server.start();
 
@@ -154,20 +155,17 @@ public class Main {
 			boolean enabled = true;
 			while(enabled) {
 				try {
-					synchronized(sleeper) {
-						while(serverEnabled) {
-							sleeper.wait();
-						}
-					}
+					server.join();
 				} catch (InterruptedException ie) {
-					ReconnectCache.save();
 					server.interrupt();
 					enabled = false;
 				}
+				ReconnectCache.save();
 			}
 		}
 		
 		Logging.log("Waiting for server to close");
+		server.interrupt();
 		try {
 			server.join();
 		} catch (InterruptedException e) {
@@ -187,9 +185,14 @@ public class Main {
 
 		Logging.log("Killing server from Bukkit");
 
-		synchronized(sleeper) {
-			serverEnabled = false;
-			sleeper.notifyAll();
+		if(server != null) {
+			server.interrupt();
+		}
+		
+		try {
+			server.join();
+		} catch (InterruptedException e) {
+			Logging.log("Server did not correctly shut down");
 		}
 
 	}
