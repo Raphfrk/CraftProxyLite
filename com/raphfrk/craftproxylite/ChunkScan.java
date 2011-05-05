@@ -13,15 +13,15 @@ public class ChunkScan {
 
 	byte[] expandChunkData(byte[] input, int inputLength, byte[] buffer) {
 
-		if(buffer.length < 131072 || inputLength > 16384) {
+		if(buffer.length < 163840 || inputLength > 32768) {
 			return null;
 		}
 
 		inflate.reset();
 		inflate.setInput(input, 0, inputLength);
 
-		int outputOffset = 32768;
-		int outputLength = 131072-outputOffset;
+		int outputOffset = 65536;
+		int outputLength = 163840-outputOffset;
 
 		int expandedLength = -1;
 		try {
@@ -39,14 +39,14 @@ public class ChunkScan {
 
 	public Integer recompressChunkData(byte[] buffer, boolean overwriteInput, long[] hashes) {
 
-		if(buffer.length < 131072) {
+		if(buffer.length < 163840) {
 			return null;
 		}
 
-		int inputOffset = 32768;
+		int inputOffset = 65536;
 		int inputSize = 81920;
-		int outputOffset = overwriteInput?0:16384;
-		int outputSize = overwriteInput?32768:16384;;
+		int outputOffset = overwriteInput?0:32768;
+		int outputSize = overwriteInput?65536:32768;
 		
 		if(hashes != null) {
 			int pos = inputSize + inputOffset;
@@ -76,7 +76,7 @@ public class ChunkScan {
 	
 	public long[] extractHashes(byte[] buffer, long[] hashes) {
 		
-		int inputOffset = 32768;
+		int inputOffset = 65536;
 		int inputSize = 81920;
 		
 		int pos = inputSize + inputOffset;
@@ -109,7 +109,7 @@ public class ChunkScan {
 		HashThread[] hashThreads = ptc.hashThreads;
 		
 		for(int cnt=0;cnt<40;cnt+=10) {
-			hashThreads[cnt/10].init(buffer, 32768, cnt, cnt+10, ptc.hashes, dontWipe);
+			hashThreads[cnt/10].init(buffer, 65536, cnt, cnt+10, ptc.hashes, dontWipe);
 		}
 
 		for(int cnt=0;cnt<4;cnt++) {
@@ -123,7 +123,7 @@ public class ChunkScan {
 		HashThread[] hashThreads = ptc.hashThreads;
 		
 		for(int cnt=0;cnt<40;cnt+=10) {
-			hashThreads[cnt/10].init(buffer, 32768, cnt, cnt+10, ptc.hashes, wipe);
+			hashThreads[cnt/10].init(buffer, 65536, cnt, cnt+10, ptc.hashes, wipe);
 		}
 		
 		for(int cnt=0;cnt<4;cnt++) {

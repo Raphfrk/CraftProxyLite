@@ -107,11 +107,11 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			if(cachedHash == null) {
 				miss++;
 				hashArray = new byte[2048];
-				HashThread.transferArray(buffer, 32768, cnt, hashArray, 0, false);
+				HashThread.transferArray(buffer, 65536, cnt, hashArray, 0, false);
 				ptc.hashCache.addArray(hash, hashArray);
 			} else {
 				hit++;
-				HashThread.transferArray(buffer, 32768, cnt, cachedHash, 0, true);
+				HashThread.transferArray(buffer, 65536, cnt, cachedHash, 0, true);
 			}
 			if(!ptc.hashesReceivedThisConnection.containsKey(hash)) {
 				int ptcPos = ptc.hashBlockReceivedPos;
@@ -156,6 +156,9 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 	@Override
 	public byte[] write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 
+		if((length = lengthUnit.getValue()) < 0) {
+			lengthUnit.setValue(length);
+		}
 		length = lengthUnit.write(out, ptc, thread, serverToClient);
 		if(length == null) {
 			return null;
