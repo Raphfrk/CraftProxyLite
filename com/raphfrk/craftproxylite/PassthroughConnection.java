@@ -53,14 +53,14 @@ public class PassthroughConnection extends KillableThread {
 	public HashSet<Long> setHashes = new HashSet<Long>();
 
 	public ConcurrentLinkedQueue<Long> hashQueue;
-	
+
 	public int hashBlockReceivedPos = 0;
 	public long[] hashBlockReceived = new long[2048];
 	public final byte[][] hashBlockReceivedFull = new byte[2048][];
 	public ConcurrentHashMap<Long,Boolean> hashesReceivedThisConnection;
 	public ConcurrentHashMap<Long,Boolean> hashesSentThisConnection;
-	
-	
+
+
 	public ChunkScan chunkScan = new ChunkScan();
 
 	PassthroughConnection(Socket socketToClient, String defaultHostname, String listenHostname) {
@@ -91,7 +91,7 @@ public class PassthroughConnection extends KillableThread {
 
 		if(Globals.localCache() || Globals.bridgingConnection()) {
 			Packet02Handshake initialHandshake = new Packet02Handshake(clientSocket.in, this, this);
-			
+
 			if(initialHandshake.packetId == null || initialHandshake.read(clientSocket.in, this, this, true, null) == null) {
 				kickMessage = "Client refused to send initial Handshake";
 			} else {
@@ -186,7 +186,7 @@ public class PassthroughConnection extends KillableThread {
 			} else {
 				kickMessage = Packet01Login.bridgingLogin(clientSocket.in, clientSocket.out, serverSocket.in, serverSocket.out, this, this, proxyLogin, clientInfo);
 			}
-			
+
 			if(kickMessage != null) {
 				printLogMessage(kickMessage);
 				PacketFFKick.kick(clientSocket.out, this, this, kickMessage);
@@ -195,7 +195,7 @@ public class PassthroughConnection extends KillableThread {
 					ReconnectCache.remove(clientInfo.getUsername());
 				}
 			}
-			
+
 			if(connected) {
 
 				Packet01Login serverLoginPacket = new Packet01Login(serverSocket.in, this, this);
@@ -269,7 +269,7 @@ public class PassthroughConnection extends KillableThread {
 								printLogMessage("Connection is in proxy/processing mode");
 							}
 						}
-						
+
 						if(Main.craftGUI != null) {
 							Main.craftGUI.safeSetStatus("<html>" + clientInfo.getUsername() + " connected<br>IP: " + clientInfo.getIP() + "<html>");
 						}
@@ -339,21 +339,23 @@ public class PassthroughConnection extends KillableThread {
 
 		printLogMessage("Closing connection to client");
 		LocalSocket.closeSocket(clientSocket.socket, this);
-		
+
 		if(Globals.localCache()) {
 			HashCache.pruneCache();
 		}
-		
-		for(KillableThread hashThread : hashThreads) {
-			if(hashThread != null) {
-				hashThread.interrupt();
+
+		if(hashThreads != null) {
+			for(KillableThread hashThread : hashThreads) {
+				if(hashThread != null) {
+					hashThread.interrupt();
+				}
 			}
-		}
-		for(KillableThread hashThread : hashThreads) {
-			if(hashThread != null) {
-				try {
-					hashThread.join();
-				} catch (InterruptedException e) {
+			for(KillableThread hashThread : hashThreads) {
+				if(hashThread != null) {
+					try {
+						hashThread.join();
+					} catch (InterruptedException e) {
+					}
 				}
 			}
 		}
