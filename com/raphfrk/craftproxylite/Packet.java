@@ -2,8 +2,6 @@ package com.raphfrk.craftproxylite;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 
 public class Packet extends ProtocolUnit {
 
@@ -18,6 +16,8 @@ public class Packet extends ProtocolUnit {
 	final static UnitString                   unitString                   = new UnitString();
 	final static UnitString8                  unitString8                  = new UnitString8();
 	final static UnitEntityId                 unitEntity                   = new UnitEntityId();
+//	final static UnitPreChunkPosition         unitPreChunkPosition         = new UnitPreChunkPosition();
+//	final static UnitChunkDataPosition        unitChunkDataPosition        = new UnitChunkDataPosition();
 	final static UnitBoolean                  unitBoolean                  = new UnitBoolean();
 	final static UnitItemStack                unitItemStack                = new UnitItemStack();
 	final static UnitMetaStream               unitMetaStream               = new UnitMetaStream();
@@ -71,6 +71,7 @@ public class Packet extends ProtocolUnit {
 
 		packetInfo[0x32] = new ProtocolUnit[] {unitInt, unitInt, unitBoolean};
 		packetInfo[0x33] = new ProtocolUnit[] {unitInt, unitShort, unitInt, unitByte, unitByte, unitByte, unitChunkData};
+
 		packetInfo[0x34] = new ProtocolUnit[] {new UnitFixed(8), unitShortSizedQuadByteArray};
 		packetInfo[0x35] = new ProtocolUnit[] {new UnitFixed(11)};
 		packetInfo[0x36] = new ProtocolUnit[] {new UnitFixed(12)};

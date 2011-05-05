@@ -4,9 +4,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 public class LocalSocket {
 
@@ -18,7 +22,7 @@ public class LocalSocket {
 	public final PassthroughConnection ptc;
 
 	public static Socket openSocket(String hostname, int port, PassthroughConnection ptc) {
-		
+
 		Socket socket = null;
 
 		try {
@@ -35,17 +39,69 @@ public class LocalSocket {
 			ptc.printLogMessage("Unknown hostname: " + hostname);
 			return null;
 		} catch (IOException e) {
-			ptc.printLogMessage("Unable to open socket to " + hostname + ":" + port);
-			return null;
+			if(hostname.trim().startsWith("localhost")) {
+				List<String> hostnames = getLocalIPs();
+				for(String h : hostnames) {
+					try {
+						socket = new Socket(h, port);
+					} catch (IOException ioe) {
+						continue;
+					}
+					ptc.printLogMessage("Used alternative IP to connect: " + h);
+					break;
+				}
+			}
+			if(socket == null) {
+				ptc.printLogMessage("Unable to open socket to " + hostname + ":" + port);
+				return null;
+			}
 		}
 		try {
 			socket.setSoTimeout(1000);
 		} catch (SocketException e) {
 			ptc.printLogMessage("Unable to set socket timeout");
+			if(socket != null) {
+				try {
+					socket.close();
+				} catch (IOException ioe){
+					return null;
+				}
+			}
 			return null;
 		}
 
 		return socket;
+
+	}
+
+	public static List<String> getLocalIPs() {
+
+		Enumeration<NetworkInterface> interfaces;
+
+		try {
+			interfaces = NetworkInterface.getNetworkInterfaces();
+		} catch (SocketException e) {
+			return null;
+		}
+
+		List<String> ips = new ArrayList<String>();
+
+		while(interfaces.hasMoreElements()) {
+			NetworkInterface current = interfaces.nextElement();
+
+			if(current != null) {
+				Enumeration<InetAddress> addresses = current.getInetAddresses();
+
+				while(addresses.hasMoreElements()) {
+					InetAddress addr = addresses.nextElement();
+					if(addr != null) {
+						ips.add(addr.getHostAddress());
+					}
+				}
+			}
+		}
+
+		return ips;
 
 	}
 

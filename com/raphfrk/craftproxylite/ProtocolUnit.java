@@ -12,6 +12,9 @@ public abstract class ProtocolUnit implements Cloneable {
 		return null;
 	}
 	
+	// Add check to 0x32 and 0x33 packets to fix teleport hole bug
+	// Still need this to generate a chunk cache
+	
 	public Object write(DataOutputStream out, PassthroughConnection ptc, KillableThread thread, boolean serverToClient) {
 		return null;
 	}
