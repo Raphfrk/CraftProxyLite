@@ -131,6 +131,9 @@ public class Packet extends ProtocolUnit {
 		if(fields != null) {
 			return true;
 		}
+		if(packetId == null) {
+			return false;
+		}
 		ProtocolUnit[] fieldsSource = packetInfo[packetId&0xFF];
 		int length = fieldsSource.length;
 		fields = new ProtocolUnit[length];
