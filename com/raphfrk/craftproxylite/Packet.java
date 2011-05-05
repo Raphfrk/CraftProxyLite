@@ -195,6 +195,7 @@ public class Packet extends ProtocolUnit {
 
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
+			return null;
 		}
 		if(Globals.isVerbose()) {
 			ptc.printLogMessage((serverToClient? "S->C" : "C->S") + " " + packetId);
