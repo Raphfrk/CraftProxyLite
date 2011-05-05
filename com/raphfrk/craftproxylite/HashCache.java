@@ -338,6 +338,9 @@ public class HashCache {
 				File oldest = fileList.removeFirst();
 				removeFile(oldest);
 			}
+			if(Main.craftGUI != null) {
+				Main.craftGUI.safeSetFileSize(Integer.toString(directorySize/1024/1024));
+			}
 		}
 	}
 

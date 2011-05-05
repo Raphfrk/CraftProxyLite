@@ -153,7 +153,7 @@ public class Main {
 		} else {
 			Logging.log("[CraftProxy-Lite] Server console disabled");
 			boolean enabled = true;
-			while(enabled) {
+			while(enabled && server.isAlive()) {
 				try {
 					server.join();
 				} catch (InterruptedException ie) {

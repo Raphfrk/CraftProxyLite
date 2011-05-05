@@ -147,8 +147,6 @@ public class ProxyListener extends KillableThread {
 
 		}
 		
-		System.out.println("About to close listener " + listener);
-
 		if(listener!=null) {
 			try {
 				listener.close();
@@ -158,7 +156,6 @@ public class ProxyListener extends KillableThread {
 		}
 
 		interruptConnections();		
-
 	}
 
 	void addPassthroughConnection(PassthroughConnection ptc) {

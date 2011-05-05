@@ -47,7 +47,13 @@ public class LocalSocket {
 					} catch (IOException ioe) {
 						continue;
 					}
-					ptc.printLogMessage("Used alternative IP to connect: " + h);
+					ptc.printLogMessage("WARNING: Used alternative IP to connect: " + h);
+					ptc.printLogMessage("WARNING: Used alternative IP to connect: " + h);
+					ptc.printLogMessage("WARNING: Used alternative IP to connect: " + h);
+					ptc.printLogMessage("WARNING: Used alternative IP to connect: " + h);
+					ptc.printLogMessage("WARNING: Used alternative IP to connect: " + h);
+					ptc.printLogMessage("WARNING: Used alternative IP to connect: " + h);
+					ptc.printLogMessage("You should change your default server parameter to include the IP address");
 					break;
 				}
 			}

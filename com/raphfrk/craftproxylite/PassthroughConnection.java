@@ -343,6 +343,20 @@ public class PassthroughConnection extends KillableThread {
 		if(Globals.localCache()) {
 			HashCache.pruneCache();
 		}
+		
+		for(KillableThread hashThread : hashThreads) {
+			if(hashThread != null) {
+				hashThread.interrupt();
+			}
+		}
+		for(KillableThread hashThread : hashThreads) {
+			if(hashThread != null) {
+				try {
+					hashThread.join();
+				} catch (InterruptedException e) {
+				}
+			}
+		}
 
 	}
 

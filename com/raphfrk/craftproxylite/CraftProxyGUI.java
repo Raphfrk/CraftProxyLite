@@ -2,11 +2,11 @@ package com.raphfrk.craftproxylite;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.logging.Level;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -24,6 +24,9 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 	JPanel combinedTop = new JPanel();
 	JTextField serverName;
 	JTextField portNum;
+	JPanel filePanel;
+	JTextField currentSize;
+	JTextField desiredSize;
 	JLabel localServerName;
 	JTextField localServerPortnum;
 	JLabel info;
@@ -50,11 +53,11 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		String defaultHostname = pf.getString("connect_hostname", "localhost");
 		int defaultPort = pf.getInt("connect_port", 20000);
 		int listenPort = pf.getInt("listen_port", 25565);
+		int desired = pf.getInt("cache_size", 48);
 
 		setTitle("CraftProxyLite Local Cache Mode");
-		setSize(375,250);
+		setSize(450,325);
 		setLocation(40,150);
-
 
 		topPanel.setLayout(new BorderLayout());
 		topPanel.setBorder(new TitledBorder("Remote Server"));
@@ -93,20 +96,35 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		combinedTop.setLayout(new BorderLayout());
 		combinedTop.add(topPanel, BorderLayout.CENTER);
 		combinedTop.add(secondPanel, BorderLayout.SOUTH);
+		
+		currentSize = new JTextField("Unknown");
+		currentSize.setBorder(new TitledBorder("Current Size (MB)"));
+		currentSize.setEditable(false);
+		
+		desiredSize = new JTextField(Integer.toString(desired));
+		desiredSize.setBorder(new TitledBorder("Max Size (MB)"));
 
+		connect = new JButton(buttonText);
+		connect.addActionListener(this);
+		
+		filePanel = new JPanel();
+		filePanel.setLayout(new BorderLayout());
+		JPanel fileLinePanel = new JPanel();
+		fileLinePanel.setBorder(new TitledBorder("Cache Size"));
+		fileLinePanel.setLayout(new GridLayout(1,2));
+		fileLinePanel.add(currentSize);
+		fileLinePanel.add(desiredSize);
+		filePanel.add(fileLinePanel, BorderLayout.CENTER);
+		filePanel.add(connect, BorderLayout.PAGE_END);
+		
 		info = new JLabel();
 		border = new TitledBorder("Status");
 		info.setBorder(border);
 
-		//SwingUtilities.invokeLater(paramRunnable);
-
-		connect = new JButton(buttonText);
-		connect.addActionListener(this);
-
 		setLayout(new BorderLayout());
 		add(combinedTop, BorderLayout.PAGE_START);
 		add(info, BorderLayout.CENTER);
-		add(connect, BorderLayout.PAGE_END);
+		add(filePanel, BorderLayout.PAGE_END);
 
 		this.setResizable(false);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -128,6 +146,15 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 			public void run() {
 				connect.setText(text);
 				connect.updateUI();
+			}
+		});
+	}
+	
+	public void safeSetFileSize(final String text) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				currentSize.setText(text);
+				currentSize.updateUI();
 			}
 		});
 	}
@@ -160,10 +187,19 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 	public void actionPerformed(ActionEvent action) {
 		if(action.getSource().equals(connect)) {
 
+			int desired = 48;
 			try {			
 				pf.setString("connect_hostname", serverName.getText());
 				pf.setInt("connect_port", Integer.parseInt(portNum.getText()));
 				pf.setInt("listen_port", Integer.parseInt(localServerPortnum.getText()));
+				try {
+					desired = Integer.parseInt(desiredSize.getText());
+				} catch (NumberFormatException nfe) {
+					desired = 48;
+					desiredSize.setText("48");
+				}
+				pf.setInt("cache_size", desired);
+				desiredSize.setEditable(false);
 				pf.save();
 			} catch (NumberFormatException nfe) {
 			}
@@ -174,6 +210,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 
 				final String distantServer = serverName.getText() + ":" + portNum.getText();
 				final String localServer = localServerPortnum.getText();
+				final String cacheSize = Integer.toString(desired * 1024 * 1024);
 
 				serverMainThread = new Thread(new Runnable() {
 
@@ -184,7 +221,9 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 								distantServer,
 								"local_cache",
 								"quiet",
-								"bridge_connection"
+								"bridge_connection",
+								"cache_limit",
+								cacheSize
 						};
 
 						Main.main(args, false);
@@ -197,6 +236,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 			} else {
 				safeSetButton("Stopping");
 				serverMainThread.interrupt();
+				desiredSize.setEditable(true);
 			}
 		}
 	}
