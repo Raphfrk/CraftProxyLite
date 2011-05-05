@@ -151,6 +151,7 @@ public class Packet extends ProtocolUnit {
 	public Packet read(DataInputStream in, PassthroughConnection ptc, KillableThread thread, boolean serverToClient, DownlinkState linkState) {
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
+			return null;
 		}
 
 		int length = fields.length;
@@ -172,6 +173,7 @@ public class Packet extends ProtocolUnit {
 
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
+			return null;
 		}
 
 		int length = fields.length;
