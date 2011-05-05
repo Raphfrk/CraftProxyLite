@@ -170,7 +170,7 @@ public class Packet extends ProtocolUnit {
 		if(ptc != null) {
 			oldCounter = ptc.packetCounter;
 		}
-
+		
 		if(!setupFields()) {
 			ptc.printLogMessage("Error creating field data storage for packet: " + packetId);
 			return null;

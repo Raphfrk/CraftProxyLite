@@ -89,7 +89,7 @@ public class CraftProxyLite extends JavaPlugin {
 				args.add(temp);
 			}
 		}
-		
+
 		pf.save();
 		
 		final String[] argsArray = args.toArray(new String[0]);

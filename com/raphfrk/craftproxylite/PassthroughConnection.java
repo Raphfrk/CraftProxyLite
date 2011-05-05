@@ -96,8 +96,8 @@ public class PassthroughConnection extends KillableThread {
 				kickMessage = "Client refused to send initial Handshake";
 			} else {
 				kickMessage = null;
+				clientInfo.setUsername(initialHandshake.getUsername());
 			}
-			clientInfo.setUsername(initialHandshake.getUsername());
 		} else {
 			kickMessage = Packet01Login.processLogin(clientSocket.in, clientSocket.out, this, this, Globals.isAuth(), clientInfo);
 		}
