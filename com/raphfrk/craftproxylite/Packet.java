@@ -2,6 +2,7 @@ package com.raphfrk.craftproxylite;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class Packet extends ProtocolUnit {
 
@@ -186,6 +187,14 @@ public class Packet extends ProtocolUnit {
 			int newCounter = ptc.packetCounter;
 			ptc.packetCounters[packetId & 0xFF] += newCounter - oldCounter;
 		}
+		
+		try {
+			out.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
 		return this;
 	}
 
@@ -216,6 +225,13 @@ public class Packet extends ProtocolUnit {
 					ptc.printLogMessage(cnt + " " + val);
 				}
 			}
+		}
+		
+		try {
+			out.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
 		}
 
 		int newCounter = ptc.packetCounter;
