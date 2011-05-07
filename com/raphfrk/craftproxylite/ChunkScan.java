@@ -6,26 +6,29 @@ import java.util.zip.Inflater;
 
 public class ChunkScan {
 	
-	static final boolean[] dontWipe = new boolean[40];
+	public static final int inputDataBufferSize = 128*1024;
+	public static final int outputDataBufferSize = 128*1024;
+	public static final int expandedBufferSize = 128*1024;
+	
+	public static final boolean[] dontWipe = new boolean[40];
 
-	Inflater inflate = new Inflater();
-	Deflater deflate = new Deflater(1);
 
-	byte[] expandChunkData(byte[] input, int inputLength, byte[] buffer) {
 
-		if(buffer.length < 163840 || inputLength > 32768) {
+	byte[] expandChunkData(byte[] input, int inputLength, byte[] buffer, PassthroughConnection ptc) {
+
+		if(buffer.length < inputDataBufferSize + outputDataBufferSize + expandedBufferSize + 320 || inputLength > inputDataBufferSize) {
 			return null;
 		}
 
-		inflate.reset();
-		inflate.setInput(input, 0, inputLength);
+		ptc.inflate.reset();
+		ptc.inflate.setInput(input, 0, inputLength);
 
-		int outputOffset = 65536;
-		int outputLength = 163840-outputOffset;
+		int outputOffset = inputDataBufferSize + outputDataBufferSize;
+		int outputLength = expandedBufferSize;
 
 		int expandedLength = -1;
 		try {
-			expandedLength = inflate.inflate(buffer, outputOffset, outputLength);
+			expandedLength = ptc.inflate.inflate(buffer, outputOffset, outputLength);
 		} catch (DataFormatException e) {
 			return null;
 		}
@@ -37,16 +40,16 @@ public class ChunkScan {
 		return buffer;
 	}
 
-	public Integer recompressChunkData(byte[] buffer, boolean overwriteInput, long[] hashes) {
+	public Integer recompressChunkData(byte[] buffer, boolean overwriteInput, long[] hashes, PassthroughConnection ptc) {
 
 		if(buffer.length < 163840) {
 			return null;
 		}
 
-		int inputOffset = 65536;
+		int inputOffset = inputDataBufferSize + outputDataBufferSize;
 		int inputSize = 81920;
-		int outputOffset = overwriteInput?0:32768;
-		int outputSize = overwriteInput?65536:32768;
+		int outputOffset = overwriteInput?0:inputDataBufferSize;
+		int outputSize = outputDataBufferSize;
 		
 		if(hashes != null) {
 			int pos = inputSize + inputOffset;
@@ -61,12 +64,12 @@ public class ChunkScan {
 			inputSize += 8*40;
 		}
 		
-		deflate.reset();
-		deflate.setInput(buffer, inputOffset, inputSize);
-		deflate.finish();
-		int compressedLength = deflate.deflate(buffer, outputOffset, outputSize);
+		ptc.deflate.reset();
+		ptc.deflate.setInput(buffer, inputOffset, inputSize);
+		ptc.deflate.finish();
+		int compressedLength = ptc.deflate.deflate(buffer, outputOffset, outputSize);
 
-		if(!deflate.finished()) {
+		if(!ptc.deflate.finished()) {
 			return null;
 		} else {
 			return compressedLength;
@@ -76,7 +79,7 @@ public class ChunkScan {
 	
 	public long[] extractHashes(byte[] buffer, long[] hashes) {
 		
-		int inputOffset = 65536;
+		int inputOffset = inputDataBufferSize + outputDataBufferSize;
 		int inputSize = 81920;
 		
 		int pos = inputSize + inputOffset;
@@ -109,7 +112,7 @@ public class ChunkScan {
 		HashThread[] hashThreads = ptc.hashThreads;
 		
 		for(int cnt=0;cnt<40;cnt+=10) {
-			hashThreads[cnt/10].init(buffer, 65536, cnt, cnt+10, ptc.hashes, dontWipe);
+			hashThreads[cnt/10].init(buffer, inputDataBufferSize + outputDataBufferSize, cnt, cnt+10, ptc.hashes, dontWipe);
 		}
 
 		for(int cnt=0;cnt<4;cnt++) {
@@ -123,7 +126,7 @@ public class ChunkScan {
 		HashThread[] hashThreads = ptc.hashThreads;
 		
 		for(int cnt=0;cnt<40;cnt+=10) {
-			hashThreads[cnt/10].init(buffer, 65536, cnt, cnt+10, ptc.hashes, wipe);
+			hashThreads[cnt/10].init(buffer, inputDataBufferSize + outputDataBufferSize, cnt, cnt+10, ptc.hashes, wipe);
 		}
 		
 		for(int cnt=0;cnt<4;cnt++) {

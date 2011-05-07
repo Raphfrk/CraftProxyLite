@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 public class PassthroughConnection extends KillableThread {
 
@@ -60,6 +62,8 @@ public class PassthroughConnection extends KillableThread {
 	public ConcurrentHashMap<Long,Boolean> hashesReceivedThisConnection;
 	public ConcurrentHashMap<Long,Boolean> hashesSentThisConnection;
 
+	public Inflater inflate = new Inflater();
+	public Deflater deflate = new Deflater(1);
 
 	public ChunkScan chunkScan = new ChunkScan();
 

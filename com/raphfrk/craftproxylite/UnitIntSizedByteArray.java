@@ -91,7 +91,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 		if(Globals.compressInfo()) {
 			ptc.printLogMessage("Initial packet length: " + length);
 		}
-		if(chunkScan.expandChunkData(buffer, length, buffer) == null) {
+		if(chunkScan.expandChunkData(buffer, length, buffer, ptc) == null) {
 			return null;
 		}
 		
@@ -107,11 +107,11 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			if(cachedHash == null) {
 				miss++;
 				hashArray = new byte[2048];
-				HashThread.transferArray(buffer, 65536, cnt, hashArray, 0, false);
+				HashThread.transferArray(buffer, ChunkScan.inputDataBufferSize + ChunkScan.outputDataBufferSize, cnt, hashArray, 0, false);
 				ptc.hashCache.addArray(hash, hashArray);
 			} else {
 				hit++;
-				HashThread.transferArray(buffer, 65536, cnt, cachedHash, 0, true);
+				HashThread.transferArray(buffer, ChunkScan.inputDataBufferSize + ChunkScan.outputDataBufferSize, cnt, cachedHash, 0, true);
 			}
 			if(!ptc.hashesReceivedThisConnection.containsKey(hash)) {
 				int ptcPos = ptc.hashBlockReceivedPos;
@@ -134,7 +134,7 @@ public class UnitIntSizedByteArray extends ProtocolUnit {
 			ptc.printLogMessage("Hit-Miss = " + hit + "-" + miss);
 		}
 		
-		Integer newLength = chunkScan.recompressChunkData(buffer, true, null);
+		Integer newLength = chunkScan.recompressChunkData(buffer, true, null, ptc);
 		
 		if(newLength == null) {
 			return null;

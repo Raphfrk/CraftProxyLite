@@ -22,7 +22,7 @@ public class UnitChunkData extends UnitIntSizedByteArray{
 
 			ChunkScan chunkScan = ptc.chunkScan;
 
-			if(chunkScan.expandChunkData(buffer, length, buffer) == null) {
+			if(chunkScan.expandChunkData(buffer, length, buffer, ptc) == null) {
 				if(Globals.compressInfo()) {
 					ptc.printLogMessage("Expansion of chunk failed");
 				}
@@ -40,7 +40,7 @@ public class UnitChunkData extends UnitIntSizedByteArray{
 			
 			chunkScan.wipeBuffer(ptc, buffer, matches);
 
-			Integer newLength = chunkScan.recompressChunkData(buffer, true, ptc.hashes);
+			Integer newLength = chunkScan.recompressChunkData(buffer, true, ptc.hashes, ptc);
 			
 			if(newLength == null) {
 				if(Globals.compressInfo()) {

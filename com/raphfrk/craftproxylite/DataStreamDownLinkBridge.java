@@ -27,7 +27,7 @@ public class DataStreamDownLinkBridge extends KillableThread {
 
 		boolean eof = false;
 
-		byte[] buffer = new byte[163840]; // buffer used for passthrough temp storage
+		byte[] buffer = new byte[ChunkScan.inputDataBufferSize + ChunkScan.outputDataBufferSize + ChunkScan.expandedBufferSize + 320]; // buffer used for passthrough temp storage
 
 		resetCounters();
 
