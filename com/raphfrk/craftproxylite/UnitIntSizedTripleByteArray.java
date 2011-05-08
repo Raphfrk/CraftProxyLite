@@ -47,7 +47,7 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 			} catch (SocketTimeoutException ste) {
 				if(!thread.killed()) {
 					timeout++;
-					if(timeout > 20) {
+					if(timeout > 225) {
 						ptc.printLogMessage("Connection timed out");
 						return null;
 					}
@@ -141,7 +141,7 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 			} catch (SocketTimeoutException ste) {
 				if(!thread.killed()) {
 					timeout++;
-					if(timeout > 20) {
+					if(timeout > 225) {
 						ptc.printLogMessage("Connection timed out");
 						return null;
 					}
@@ -157,7 +157,7 @@ public class UnitIntSizedTripleByteArray extends ProtocolUnit {
 			} catch (SocketTimeoutException ste) {
 				if(!thread.killed()) {
 					timeout++;
-					if(timeout > 20) {
+					if(timeout > 225) {
 						ptc.printLogMessage("Connection timed out");
 						return null;
 					}

@@ -32,7 +32,7 @@ public class DataStreamBridge extends KillableThread {
 			} catch (SocketTimeoutException ste) {
 				if(!super.killed()) {
 					timeout++;
-					if(timeout > 20) {
+					if(timeout > 225) {
 						ptc.printLogMessage("Connection timed out");
 						return;
 					}

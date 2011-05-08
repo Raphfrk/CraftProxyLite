@@ -34,7 +34,7 @@ public class ProxyListener extends KillableThread {
 		ServerSocket listener = null;
 		try {
 			listener = new ServerSocket(port);
-			listener.setSoTimeout(1000);
+			listener.setSoTimeout(200);
 		} catch (BindException be) {
 			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
 			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
@@ -99,7 +99,7 @@ public class ProxyListener extends KillableThread {
 			}
 
 			try {
-				socket.setSoTimeout(1000);
+				socket.setSoTimeout(200);
 			} catch (SocketException e) {
 				Logging.log( "Unable to set timeout for socket");
 				if(socket != null) {
