@@ -193,6 +193,9 @@ public class HashCache {
 		if(all) {
 			for(int cnt=0;cnt<blockSize;cnt++) {
 				if(hashData[cnt] != null) {
+					if(!FAT.containsKey(hashes[cnt])) {
+						FAT.put(hashes[cnt], file);
+					}
 					cache.put(hashes[cnt], new SoftReference<byte[]>(hashData[cnt]));
 					hardReferencesLoop.addLast(hashData[cnt]);
 					if(hardReferencesLoop.size() > 32768) {
@@ -223,7 +226,7 @@ public class HashCache {
 
 	}
 
-	private class HardReference<T> extends SoftReference<T> {
+	public class HardReference<T> extends SoftReference<T> {
 
 		public T hard;
 
@@ -300,6 +303,7 @@ public class HashCache {
 				Reference<byte[]> ref = cache.get(hash);
 				if(ref != null && !(ref instanceof SoftReference)) {
 					byte[] temp = ref.get();
+					FAT.put(hashes[cnt], outFile);
 					cache.put(hash, new SoftReference<byte[]>(temp));
 				}
 			}
